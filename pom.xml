@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>magicfree-json</artifactId>
+  <version>${revision}</version>
+  <packaging>jar</packaging>
+  <name>Magicfree JSON</name>
+  <description>A minimal JSON parser and writer</description>
+  <url>https://github.com/ksclarke/magicfree-json</url>
+
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>https://opensource.org/licenses/MIT</url>
+    </license>
+  </licenses>
+
+  <scm>
+    <url>https://github.com/ksclarke/magicfree-json</url>
+    <connection>scm:git:git@github.com:ksclarke/magicfree-json.git</connection>
+    <developerConnection>scm:git:git@github.com:ksclarke/magicfree-json.git</developerConnection>
+  </scm>
+
+  <developers>
+    <developer>
+      <id>rsternberg</id>
+      <name>Ralf Sternberg</name>
+      <email>rsternberg@eclipsesource.com</email>
+      <organization>EclipseSource</organization>
+      <organizationUrl>http://eclipsesource.com/</organizationUrl>
+      <roles>
+        <role>Original developer of minimal-json</role>
+      </roles>
+    </developer>
+    <developer>
+      <id>ksclarke</id>
+      <name>Kevin S. Clarke</name>
+      <email>ksclarke@ksclarke.io</email>
+      <organization>FreeLibrary</organization>
+      <organizationUrl>http://projects.freelibrary.info</organizationUrl>
+      <roles>
+        <role>Developer who forked minimal-json to create magicfree-json</role>
+      </roles>
+    </developer>
+  </developers>
+
+  <properties>
+    <!-- Library dependency versions -->
+    <freelib.utils.version>4.0.2</freelib.utils.version>
+
+    <!-- Plugin dependency versions -->
+    <clean.plugin.version>3.3.2</clean.plugin.version>
+
+    <!-- Test dependency versions -->
+    <junit.version>5.10.0</junit.version>
+    <graal.version>0.9.27</graal.version>
+    <system.lambda.version>1.2.1</system.lambda.version>
+
+    <!-- The log level to use for running the tests -->
+    <testLogLevel>DEBUG</testLogLevel>
+
+    <!-- The default scope for the logback dependencies; set to 'test' for production builds -->
+    <logback.scope>compile</logback.scope>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <!-- Included for an I18n logging implementation and other small utilities -->
+      <groupId>info.freelibrary</groupId>
+      <artifactId>freelib-utils</artifactId>
+      <version>${freelib.utils.version}</version>
+    </dependency>
+    <dependency>
+      <!-- This is transitive dependency, but including it to make its use obvious -->
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+
+    <!-- Test dependencies -->
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <scope>${logback.scope}</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.github.stefanbirkner</groupId>
+      <artifactId>system-lambda</artifactId>
+      <version>${system.lambda.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <testResources>
+      <testResource>
+        <directory>src/test/resources</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>logback-test.xml</include>
+        </includes>
+      </testResource>
+    </testResources>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <generatedSourcesDirectory>src/main/generated</generatedSourcesDirectory>
+          <generatedTestSourcesDirectory>src/main/generated</generatedTestSourcesDirectory>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>info.freelibrary</groupId>
+        <artifactId>freelib-maven-plugins</artifactId>
+        <executions>
+          <execution>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>generate-codes</goal>
+            </goals>
+            <configuration>
+              <!-- GraalVM only works with resources in properties files -->
+              <createPropertiesFile>true</createPropertiesFile>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <forkCount>1</forkCount>
+          <reuseForks>false</reuseForks>
+          <argLine>${jacoco.agent.arg}</argLine>
+        </configuration>
+      </plugin>
+
+      <!-- A plugin for running integration tests -->
+      <plugin>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <argLine>${jacoco.agent.arg}</argLine>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.graalvm.buildtools</groupId>
+        <artifactId>native-maven-plugin</artifactId>
+        <version>${graal.version}</version>
+        <extensions>true</extensions>
+        <executions>
+          <execution>
+            <goals>
+              <goal>build</goal>
+            </goals>
+            <phase>package</phase>
+          </execution>
+        </executions>
+        <configuration>
+          <metadataRepository>
+            <enabled>true</enabled>
+          </metadataRepository>
+          <imageName>mf-json</imageName>
+          <mainClass>info.freelibrary.json.Main</mainClass>
+          <buildArgs>
+            <buildArg>--no-fallback</buildArg>
+          </buildArgs>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>${clean.plugin.version}</version>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>src/main/generated</directory>
+              <followSymlinks>false</followSymlinks>
+            </fileset>
+          </filesets>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-enforcer-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <configuration>
+          <additionalJOptions>
+            <additionalJOption>-J-Dhttp.agent=maven-javadoc-plugin-${project.artifactId}</additionalJOption>
+          </additionalJOptions>
+          <stylesheetfile>stylesheet.css</stylesheetfile>
+          <links>
+            <link>https://javadoc.io/doc/info.freelibrary/freelib-utils/${freelib.utils.version}/apidocs</link>
+          </links>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <parent>
+    <artifactId>freelib-parent</artifactId>
+    <groupId>info.freelibrary</groupId>
+    <version>8.0.5</version>
+  </parent>
+
+</project>

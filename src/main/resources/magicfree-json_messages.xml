@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+
+<properties>
+  <entry key="message-class-name">info.freelibrary.json.MessageCodes</entry>
+
+  <entry key="JSON_000">{}</entry>
+  <entry key="JSON_001">Infinite and NaN values not permitted in JSON</entry>
+  <entry key="JSON_002">values is null</entry>
+  <entry key="JSON_003">string is null</entry>
+  <entry key="JSON_004">file is null</entry>
+  <entry key="JSON_005">object is null</entry>
+  <entry key="JSON_006">name is null</entry>
+  <entry key="JSON_007">value is null</entry>
+  <entry key="JSON_008">Unexpected end of input at </entry>
+  <entry key="JSON_009">writer is null</entry>
+  <entry key="JSON_010">config is null</entry>
+  <entry key="JSON_011">Not an object: null</entry>
+  <entry key="JSON_012">Not an array: null</entry>
+  <entry key="JSON_013">Not a string: null</entry>
+  <entry key="JSON_014">Not a number: null</entry>
+  <entry key="JSON_015">Not a boolean: null</entry>
+  <entry key="JSON_016">Indentation cannot be a negative number</entry>
+  <entry key="JSON_017">array is null</entry>
+  <entry key="JSON_018">Infinite and NaN values not permitted in JSON</entry>
+  <entry key="JSON_019">Handler is null</entry>
+  <entry key="JSON_020">JsonPointers were not resolved as expected</entry>
+
+</properties>

@@ -1,0 +1,12 @@
+{
+  "bundles": [
+    { "name": "magicfree-json_messages" },
+    { "name": "freelib-utils_messages" }
+  ],
+  "resources": {
+    "includes": [
+      { "pattern": "logback.xml" }
+    ]
+  }
+}
+
