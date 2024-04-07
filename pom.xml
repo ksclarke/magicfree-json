@@ -12,8 +12,8 @@
 
   <licenses>
     <license>
-      <name>MIT License</name>
-      <url>https://opensource.org/licenses/MIT</url>
+      <name>MPL 2.0 License</name>
+      <url>https://opensource.org/license/mpl-2-0</url>
     </license>
   </licenses>
 
@@ -24,6 +24,7 @@
   </scm>
 
   <developers>
+    <!--
     <developer>
       <id>rsternberg</id>
       <name>Ralf Sternberg</name>
@@ -34,6 +35,7 @@
         <role>Original developer of minimal-json</role>
       </roles>
     </developer>
+    -->
     <developer>
       <id>ksclarke</id>
       <name>Kevin S. Clarke</name>
@@ -229,7 +231,7 @@
   <parent>
     <artifactId>freelib-parent</artifactId>
     <groupId>info.freelibrary</groupId>
-    <version>8.0.5</version>
+    <version>8.0.7</version>
   </parent>
 
 </project>
