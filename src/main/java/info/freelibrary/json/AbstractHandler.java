@@ -11,8 +11,7 @@ import info.freelibrary.util.warnings.JDK;
 /**
  * An abstract handler that provides additional methods that are not implemented in JsonHandler.
  */
-public abstract class AbstractHandler<O extends Object, I extends List<?>>
-        implements JsonHandler<O, I> {
+public abstract class AbstractHandler<O extends Object, I extends List<?>> implements JsonHandler<O, I> {
 
     /**
      * The abstract handler's logger.

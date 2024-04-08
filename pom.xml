@@ -12,8 +12,12 @@
 
   <licenses>
     <license>
-      <name>MPL 2.0 License</name>
-      <url>https://opensource.org/license/mpl-2-0</url>
+      <name>Mozilla Public License 2.0 (MPL-2.0)</name>
+      <url>https://opensource.org/licenses/MPL-2.0</url>
+    </license>
+    <license>
+      <name>MIT License</name>
+      <url>https://opensource.org/license/mit</url>
     </license>
   </licenses>
 
@@ -121,17 +125,23 @@
 
     <plugins>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <generatedSourcesDirectory>src/main/generated</generatedSourcesDirectory>
-          <generatedTestSourcesDirectory>src/main/generated</generatedTestSourcesDirectory>
-        </configuration>
+        <groupId>net.revelc.code.formatter</groupId>
+        <artifactId>formatter-maven-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
       </plugin>
 
       <plugin>
         <groupId>info.freelibrary</groupId>
         <artifactId>freelib-maven-plugins</artifactId>
+
+        <configuration>
+          <generatedSourcesDirectory>${project.basedir}/src/main/generated</generatedSourcesDirectory>
+        </configuration>
+
         <executions>
           <execution>
             <phase>process-resources</phase>

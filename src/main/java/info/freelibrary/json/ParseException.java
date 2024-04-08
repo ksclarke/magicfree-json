@@ -37,6 +37,7 @@ public class ParseException extends I18nRuntimeException {
 
     /**
      * Creates a new parse exception.
+     *
      * @param aLocation An exception location
      * @param aMessage An exception message
      */
@@ -47,6 +48,7 @@ public class ParseException extends I18nRuntimeException {
 
     /**
      * Creates a new parse exception.
+     *
      * @param aLocation An exception location
      * @param aMessage An exception message
      * @param aDetailsArray Additional details to add to the message
