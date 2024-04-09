@@ -3,11 +3,11 @@
 **/.flattened-pom.xml
 
 # Build artifacts
-target/
-reports/
+/target/
+/reports/
 
 # Ignore project build tools which are generated on each build; we keep Checkstyle and PMD so they can be picked up by Codacy
-src/main/tools/eclipse
+/src/main/tools/eclipse
 
 # An optional log file that can be used to permanently override the testing default
-logback-test.xml
+/logback-test.xml

@@ -1,4 +1,5 @@
 # Magicfree JSON
+[![Build Status](https://github.com/ksclarke/magicfree-json/actions/workflows/build.yml/badge.svg)](https://github.com/ksclarke/magicfree-json/actions/workflows/build.yml)
 
 A simple JSON library that doesn't attempt to do anything fancy (like POJO mapping), but insteads provides an event-based interface (and generic object model) that can 
 be used to work with JSON documents. It's a fork of the [minimal-json](https://github.com/ralfstx/minimal-json) project, which is no longer maintained.

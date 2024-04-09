@@ -61,7 +61,7 @@
 
     <!-- Test dependency versions -->
     <junit.version>5.10.0</junit.version>
-    <graal.version>0.9.27</graal.version>
+    <graal.version>0.10.1</graal.version>
     <system.lambda.version>1.2.1</system.lambda.version>
 
     <!-- The log level to use for running the tests -->
