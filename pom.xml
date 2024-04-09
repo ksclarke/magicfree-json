@@ -54,7 +54,7 @@
 
   <properties>
     <!-- Library dependency versions -->
-    <freelib.utils.version>4.0.2</freelib.utils.version>
+    <freelib.utils.version>4.0.3</freelib.utils.version>
 
     <!-- Plugin dependency versions -->
     <clean.plugin.version>3.3.2</clean.plugin.version>
