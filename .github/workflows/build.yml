@@ -12,22 +12,55 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java: [ 11, 17, 21 ]
-        maven: [ 3.8.6 ]
-        jdk: [ temurin ]
+        java_version: [ 11, 17, 21 ]
+        maven_version: [ 3.8.6 ]
+        graalvm_version: [ '22.3.3', '' ]
+        distribution: [ 'graalvm-community', '' ]
+        exclude:
+          - java_version: 11
+            graalvm_version: ''
+            distribution: 'graalvm-community'
+          - java_version: 11
+            graalvm_version: '22.3.3'
+            distribution: 'graalvm-community'
+          - java_version: 11
+            graalvm_version: ''
+            distribution: ''
+          - java_version: 17
+            graalvm_version: '22.3.3'
+            distribution: ''
+          - java_version: 17
+            graalvm_version: '22.3.3'
+            distribution: 'graalvm-community'
+          - java_version: 17
+            graalvm_version: ''
+            distribution: ''
+          - java_version: 21
+            graalvm_version: '22.3.3'
+            distribution: ''
+          - java_version: 21
+            graalvm_version: '22.3.3'
+            distribution: 'graalvm-community'
+          - java_version: 21
+            graalvm_version: ''
+            distribution: ''
     steps:
       - name: Check out source code
         uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v3.0.2
-      - name: Install JDK ${{ matrix.java }}
-        uses: actions/setup-java@860f60056505705214d223b91ed7a30f173f6142 # v3.3.0
+      - name: Install GraalVM
+        uses: graalvm/setup-graalvm@v1
         with:
-          cache: maven
-          distribution: ${{ matrix.jdk }}
-          java-version: ${{ matrix.java }}
+          java-version: ${{ matrix.java_version }}
+          distribution: ${{ matrix.distribution }}
+          version: ${{ matrix.graalvm_version }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          components: 'native-image'
+          cache: 'maven'
+#          native-image-musl: 'true'
       - name: Set up Maven
         uses: stCarolas/setup-maven@07fbbe97d97ef44336b7382563d66743297e442f # v4.5
         with:
-          maven-version: ${{ matrix.maven }}
+          maven-version: ${{ matrix.maven_version }}
       - name: Build with Maven
         run: |
           mvn -V --no-transfer-progress --batch-mode \
