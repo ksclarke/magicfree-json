@@ -15,5 +15,3 @@ which was released under the MIT License. This additional license, which would a
 If you encounter a problem with Magicfree JSON, feel free to open a ticket in the project's [issues queue](https://github.com/ksclarke/magicfree-json/issues "GitHub 
 Issues Queue"). If you have a question, feel free to use the project's [discussion board](https://github.com/ksclarke/magicfree-json/discussions "GitHub Discussions 
 Board").
-
-Thanks for your interest in this project!
