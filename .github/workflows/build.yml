@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: Maven PR Builder (JDK ${{ matrix.java }})
+    name: Maven PR Builder (JDK ${{ matrix.java_version }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -16,6 +16,8 @@ jobs:
         maven_version: [ 3.8.6 ]
         graalvm_version: [ '22.3.3', '' ]
         distribution: [ 'graalvm-community', '' ]
+        # A complex config is needed because GraalVM handles JDK 11 and post-JDK 11 setup differently
+        # JDK 11 is deprecated and falls out of support in Oct. 2024
         exclude:
           - java_version: 11
             graalvm_version: ''
@@ -48,7 +50,7 @@ jobs:
       - name: Check out source code
         uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # v3.0.2
       - name: Install GraalVM
-        uses: graalvm/setup-graalvm@v1
+        uses: graalvm/setup-graalvm@2f25c0caae5b220866f732832d5e3e29ff493338 # v1.2.1
         with:
           java-version: ${{ matrix.java_version }}
           distribution: ${{ matrix.distribution }}

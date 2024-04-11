@@ -174,31 +174,6 @@
       </plugin>
 
       <plugin>
-        <groupId>org.graalvm.buildtools</groupId>
-        <artifactId>native-maven-plugin</artifactId>
-        <version>${graal.version}</version>
-        <extensions>true</extensions>
-        <executions>
-          <execution>
-            <goals>
-              <goal>build</goal>
-            </goals>
-            <phase>package</phase>
-          </execution>
-        </executions>
-        <configuration>
-          <metadataRepository>
-            <enabled>true</enabled>
-          </metadataRepository>
-          <imageName>mf-json</imageName>
-          <mainClass>info.freelibrary.json.Main</mainClass>
-          <buildArgs>
-            <buildArg>--no-fallback</buildArg>
-          </buildArgs>
-        </configuration>
-      </plugin>
-
-      <plugin>
         <artifactId>maven-clean-plugin</artifactId>
         <version>${clean.plugin.version}</version>
         <configuration>
@@ -237,6 +212,45 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>native-build</id>
+      <activation>
+        <property>
+          <name>env.GRAALVM_HOME</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.graalvm.buildtools</groupId>
+            <artifactId>native-maven-plugin</artifactId>
+            <version>${graal.version}</version>
+            <extensions>true</extensions>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>build</goal>
+                </goals>
+                <phase>package</phase>
+              </execution>
+            </executions>
+            <configuration>
+              <metadataRepository>
+                <enabled>true</enabled>
+              </metadataRepository>
+              <imageName>mf-json</imageName>
+              <mainClass>info.freelibrary.json.Main</mainClass>
+              <buildArgs>
+                <buildArg>--no-fallback</buildArg>
+              </buildArgs>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
   <parent>
     <artifactId>freelib-parent</artifactId>

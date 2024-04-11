@@ -1,5 +1,4 @@
-# Magicfree JSON
-[![Build Status](https://github.com/ksclarke/magicfree-json/actions/workflows/build.yml/badge.svg)](https://github.com/ksclarke/magicfree-json/actions/workflows/build.yml)
+# Magicfree JSON &nbsp;[![Build Status](https://github.com/ksclarke/magicfree-json/actions/workflows/build.yml/badge.svg)](https://github.com/ksclarke/magicfree-json/actions/workflows/build.yml) [![Maven](https://img.shields.io/maven-metadata/v/https/repo1.maven.org/maven2/info/freelibrary/magicfree-json/maven-metadata.xml.svg?colorB=brightgreen)](https://search.maven.org/artifact/info.freelibrary/magicfree-json) [![Javadocs](http://javadoc.io/badge/info.freelibrary/magicfree-json.svg)](http://projects.freelibrary.info/magicfree-json/javadocs.html)
 
 A simple JSON library that doesn't attempt to do anything fancy (like POJO mapping), but insteads provides an event-based interface (and generic object model) that can 
 be used to work with JSON documents. It's a fork of the [minimal-json](https://github.com/ralfstx/minimal-json) project, which is no longer maintained.
