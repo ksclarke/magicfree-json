@@ -1,3 +1,4 @@
+// License info: https://github.com/ksclarke/magicfree-json#licenses
 
 package info.freelibrary.json;
 
@@ -8,6 +9,7 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Objects;
 
+import info.freelibrary.util.I18nRuntimeException;
 import info.freelibrary.util.Logger;
 import info.freelibrary.util.LoggerFactory;
 import info.freelibrary.util.warnings.JDK;
@@ -16,6 +18,9 @@ import info.freelibrary.util.warnings.JDK;
  * A streaming parser for JSON text. The parser reports all events to a given handler.
  */
 public final class JsonParser {
+
+    /** A default character buffer size. */
+    private static final int DEFAULT_BUFFER_SIZE = 1024;
 
     /** The logger used by the JsonParser. */
     private static final Logger LOGGER = LoggerFactory.getLogger(JsonParser.class, MessageCodes.BUNDLE);
@@ -26,56 +31,53 @@ public final class JsonParser {
     /** A minimum character buffer size. */
     private static final int MIN_BUFFER_SIZE = 10;
 
-    /** A default character buffer size. */
-    private static final int DEFAULT_BUFFER_SIZE = 1024;
-
-    /** A map of JSON handlers with the handlers' class names used as keys. */
-    private final Deque<JsonHandler<Object, Object>> myHandlers;
-
-    /** The character buffer. */
-    private StringBuilder myCaptureBuffer;
-
-    /** A snapshot of the parser's state. */
-    private Snapshot mySnapshot;
-
-    /** The reader that the parser is using to read the incoming JSON. */
-    private Reader myReader;
-
-    /** The character buffer's offset. */
-    private int myBufferOffset;
-
-    /** The JSON document's line offset. */
-    private int myLineOffset;
-
-    /** The current size of the character buffer. */
-    private int myBufferSize;
-
-    /** The character buffer. */
-    private char[] myBuffer;
-
-    /** The parser buffer's index position. */
-    private int myIndex;
-
-    /** The parsing buffer's fill index position. */
-    private int myFill;
-
-    /** The parser's current line number. */
-    private int myLine;
-
-    /** The JSON document's current index position. */
-    private int myCurrent;
-
-    /** The character buffer's capture start position. */
-    private int myCaptureStart;
-
-    /** The current nesting level of the parser. */
-    private int myNestingLevel;
-
     /** Whether the parsing is finished. */
     private boolean isFinished;
 
     /** Whether the parser is to be reset at the next opportunity. */
     private boolean isToBeReset;
+
+    /** The character buffer. */
+    private char[] myBuffer;
+
+    /** The character buffer's offset. */
+    private int myBufferOffset;
+
+    /** The current size of the character buffer. */
+    private int myBufferSize;
+
+    /** The character buffer. */
+    private StringBuilder myCaptureBuffer;
+
+    /** The character buffer's capture start position. */
+    private int myCaptureStart;
+
+    /** The JSON document's current index position. */
+    private int myCurrent;
+
+    /** The parsing buffer's fill index position. */
+    private int myFill;
+
+    /** A map of JSON handlers with the handlers' class names used as keys. */
+    private final Deque<JsonHandler<Object, Object>> myHandlers;
+
+    /** The parser buffer's index position. */
+    private int myIndex;
+
+    /** The parser's current line number. */
+    private int myLine;
+
+    /** The JSON document's line offset. */
+    private int myLineOffset;
+
+    /** The current nesting level of the parser. */
+    private int myNestingLevel;
+
+    /** The reader that the parser is using to read the incoming JSON. */
+    private Reader myReader;
+
+    /** A snapshot of the parser's state. */
+    private Snapshot mySnapshot;
 
     /* ASCII illustration of parsing offset, index, etc.
      *
@@ -106,19 +108,41 @@ public final class JsonParser {
     }
 
     /**
-     * Parses the given input string. The input must contain a valid JSON value, optionally padded with whitespace.
+     * Changes the handler currently being used by the parser and returns a consumer from that handler.
      *
-     * @param aString the input string, must be valid JSON
-     * @throws ParseException if the input is not valid JSON
+     * @param aHandler A JSON handler
      */
-    public void parse(final String aString) {
-        Objects.requireNonNull(aString, "string is null");
-
-        try {
-            parse(new StringReader(aString), getBufferSize(aString.length()));
-        } catch (final IOException details) {
-            throw new RuntimeException(details); // StringReader does not throw IOException
+    @SuppressWarnings(JDK.UNCHECKED)
+    public void addHandler(final JsonHandler<?, ?> aHandler) {
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace(MessageCodes.JSON_025, getSimpleName(aHandler));
         }
+
+        myHandlers.push((JsonHandler<Object, Object>) aHandler);
+        aHandler.setJsonParser(this);
+    }
+
+    /**
+     * Gets the parser's current location.
+     *
+     * @return The parser's location
+     */
+    public Location getLocation() {
+        final int offset = myBufferOffset + myIndex - 1;
+        final int column = offset - myLineOffset + 1;
+        return new Location(offset, myLine, column, myNestingLevel);
+    }
+
+    /**
+     * Mark the parsing process so that a reset will return to this location instead of to the beginning of the JSON
+     * document.
+     *
+     * @return This parser
+     * @throws IOException If the current parsing position couldn't be marked for future use
+     */
+    public JsonParser mark() throws IOException {
+        mySnapshot = new Snapshot();
+        return this;
     }
 
     /**
@@ -138,26 +162,34 @@ public final class JsonParser {
     }
 
     /**
-     * Mark the parsing process so that a reset will return to this location instead of to the beginning of the JSON
-     * document.
+     * Parses the given input string. The input must contain a valid JSON value, optionally padded with whitespace.
      *
-     * @return This parser
-     * @throws IOException If the current parsing position couldn't be marked for future use
+     * @param aString the input string, must be valid JSON
+     * @throws ParseException if the input is not valid JSON
      */
-    public JsonParser mark() throws IOException {
-        mySnapshot = new Snapshot();
-        return this;
+    public void parse(final String aString) {
+        Objects.requireNonNull(aString, LOGGER.getMessage(MessageCodes.JSON_003));
+
+        try {
+            parse(new StringReader(aString), getBufferSize(aString.length()));
+        } catch (final IOException details) {
+            throw new I18nRuntimeException(details); // StringReader does not throw IOException
+        }
     }
 
     /**
-     * Stops parsing the document, ignoring any yet to be parsed content. What's parsed at the point of calling this is
-     * what you have.
+     * Removes the current handler and returns it.
      *
-     * @return This parser
+     * @return The current handler
      */
-    public JsonParser stop() {
-        isFinished = true;
-        return this;
+    public JsonHandler<Object, Object> removeHandler() {
+        final JsonHandler<Object, Object> handler = myHandlers.pop();
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace(MessageCodes.JSON_025, getSimpleName(myHandlers.peek()));
+        }
+
+        return handler;
     }
 
     /**
@@ -172,36 +204,6 @@ public final class JsonParser {
     }
 
     /**
-     * Changes the handler currently being used by the parser and returns a consumer from that handler.
-     *
-     * @param aHandler A JSON handler
-     */
-    @SuppressWarnings(JDK.UNCHECKED)
-    public void addHandler(final JsonHandler<?, ?> aHandler) {
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Updating parser's handler to: {}", getSimpleName(aHandler));
-        }
-
-        myHandlers.push((JsonHandler<Object, Object>) aHandler);
-        aHandler.setJsonParser(this);
-    }
-
-    /**
-     * Removes the current handler and returns it.
-     *
-     * @return The current handler
-     */
-    public JsonHandler<Object, Object> removeHandler() {
-        final JsonHandler<Object, Object> handler = myHandlers.pop();
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Updating parser's handler to: {}", getSimpleName(myHandlers.peek()));
-        }
-
-        return handler;
-    }
-
-    /**
      * Removes all the handlers but the root one.
      *
      * @return The root handler
@@ -212,21 +214,21 @@ public final class JsonParser {
         }
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Updating parser's handler to: {}", getSimpleName(myHandlers.peek()));
+            LOGGER.trace(MessageCodes.JSON_025, getSimpleName(myHandlers.peek()));
         }
 
         return myHandlers.peek();
     }
 
     /**
-     * Gets the parser's current location.
+     * Stops parsing the document, ignoring any yet to be parsed content. What's parsed at the point of calling this is
+     * what you have.
      *
-     * @return The parser's location
+     * @return This parser
      */
-    public Location getLocation() {
-        final int offset = myBufferOffset + myIndex - 1;
-        final int column = offset - myLineOffset + 1;
-        return new Location(offset, myLine, column, myNestingLevel);
+    public JsonParser stop() {
+        isFinished = true;
+        return this;
     }
 
     /**
@@ -244,7 +246,7 @@ public final class JsonParser {
      */
     void parse(final Reader aReader, final int aBufferSize) throws IOException {
         if (aBufferSize <= 0) {
-            throw new IllegalArgumentException("buffersize is zero or negative");
+            throw new IllegalArgumentException(LOGGER.getMessage(MessageCodes.JSON_026));
         }
 
         myBufferSize = aBufferSize;
@@ -253,30 +255,35 @@ public final class JsonParser {
         startParsing();
     }
 
-    /**
-     * Gets the simple name of the supplied handler.
-     *
-     * @param aHandler A JSON handler
-     * @return The simple name of the supplied handler
-     */
-    private String getSimpleName(final JsonHandler<?, ?> aHandler) {
-        return aHandler.getClass().getSimpleName();
+    private String endCapture() {
+        final int start = myCaptureStart;
+        final int end = myIndex - 1;
+
+        myCaptureStart = -1;
+
+        if (myCaptureBuffer.length() > 0) {
+            final String captured;
+
+            myCaptureBuffer.append(myBuffer, start, end - start);
+            captured = myCaptureBuffer.toString();
+            myCaptureBuffer.setLength(0);
+
+            return captured;
+        }
+
+        return new String(myBuffer, start, end - start);
     }
 
-    /**
-     * Resets the parser so that it can start parsing the same JSON document with a different handler.
-     */
-    private void resetState() {
-        isToBeReset = false;
-        isFinished = false;
+    private ParseException error(final String aMessageCode) {
+        return new ParseException(getLocation(), LOGGER.getMessage(aMessageCode));
+    }
 
-        try {
-            myReader.reset();
-
-            startParsing();
-        } catch (final IOException details) {
-            throw new ParseException(getLocation(), details.getMessage());
+    private ParseException expected(final String aMessageCode) {
+        if (isEndOfText()) {
+            return error(MessageCodes.JSON_027);
         }
+
+        return error(LOGGER.getMessage(aMessageCode));
     }
 
     /**
@@ -290,36 +297,412 @@ public final class JsonParser {
     }
 
     /**
-     * Starts parsing the JSON document.
+     * Gets the simple name of the supplied handler.
      *
-     * @throws IOException If there is trouble reading the JSON document
+     * @param aHandler A JSON handler
+     * @return The simple name of the supplied handler
      */
-    private void startParsing() throws IOException {
-        if (mySnapshot != null) {
-            mySnapshot.restore();
-        } else {
-            myBuffer = new char[myBufferSize];
-            myBufferOffset = 0;
+    private String getSimpleName(final JsonHandler<?, ?> aHandler) {
+        return aHandler.getClass().getSimpleName();
+    }
+
+    private boolean isDigit() {
+        return myCurrent >= '0' && myCurrent <= '9';
+    }
+
+    private boolean isEndOfText() {
+        return myCurrent == -1;
+    }
+
+    private boolean isHexDigit() {
+        return myCurrent >= '0' && myCurrent <= '9' || myCurrent >= 'a' && myCurrent <= 'f' ||
+                myCurrent >= 'A' && myCurrent <= 'F';
+    }
+
+    private boolean isWhiteSpace() {
+        return myCurrent == ' ' || myCurrent == '\t' || myCurrent == '\n' || myCurrent == '\r';
+    }
+
+    private void pauseCapture() {
+        final int end = myCurrent == -1 ? myIndex : myIndex - 1;
+
+        myCaptureBuffer.append(myBuffer, myCaptureStart, end - myCaptureStart);
+        myCaptureStart = -1;
+    }
+
+    private void read() throws IOException {
+        if (myIndex == myFill) {
+            if (myCaptureStart != -1) {
+                myCaptureBuffer.append(myBuffer, myCaptureStart, myFill - myCaptureStart);
+                myCaptureStart = 0;
+            }
+
+            myBufferOffset += myFill;
+            myFill = myReader.read(myBuffer, 0, myBuffer.length);
             myIndex = 0;
-            myFill = 0;
-            myLine = 1;
-            myLineOffset = 0;
-            myCurrent = 0;
-            myCaptureStart = -1;
+
+            if (myFill == -1) {
+                myCurrent = -1;
+                myIndex++;
+
+                return;
+            }
+        }
+
+        if (myCurrent == '\n') {
+            myLine++;
+            myLineOffset = myBufferOffset + myIndex;
+        }
+
+        myCurrent = myBuffer[myIndex++];
+    }
+
+    /**
+     * Reads an array from the incoming JSON stream.
+     *
+     * @throws IOException If there is trouble reading from the JSON stream
+     */
+    private void readArray() throws IOException {
+        final JsonHandler<Object, Object> currentHandler = myHandlers.peek();
+        final Object array = currentHandler.startArray();
+
+        read();
+
+        if (++myNestingLevel > MAX_NESTING_LEVEL) {
+            throw error(LOGGER.getMessage(MessageCodes.JSON_030));
+        }
+
+        skipWhiteSpace();
+
+        if (readChar(']')) {
+            myNestingLevel--;
+            currentHandler.endArray(array);
+
+            return;
+        }
+
+        do {
+            skipWhiteSpace();
+            currentHandler.startArrayValue(array);
+            readValue();
+            currentHandler.endArrayValue(array);
+            skipWhiteSpace();
+        } while (readChar(',') && !isFinished);
+
+        if (!readChar(']') && !isFinished) {
+            throw expected(MessageCodes.JSON_029);
+        }
+
+        myNestingLevel--;
+        currentHandler.endArray(array);
+    }
+
+    private boolean readChar(final char aChar) throws IOException {
+        if (myCurrent != aChar) {
+            return false;
         }
 
         read();
-        skipWhiteSpace();
-        readValue();
-        skipWhiteSpace();
+        return true;
+    }
 
-        if (!isFinished && !isEndOfText()) {
-            throw error("Unexpected character");
+    private boolean readDigit() throws IOException {
+        if (!isDigit()) {
+            return false;
         }
 
-        if (isToBeReset) {
-            resetState();
+        read();
+        return true;
+    }
+
+    /**
+     * Reads an escape character.
+     *
+     * @throws IOException If there is trouble reading an escape character
+     */
+    private void readEscape() throws IOException {
+        read();
+
+        switch (myCurrent) {
+            case '"':
+            case '/':
+            case '\\':
+                myCaptureBuffer.append((char) myCurrent);
+                break;
+            case 'b':
+                myCaptureBuffer.append('\b');
+                break;
+            case 'f':
+                myCaptureBuffer.append('\f');
+                break;
+            case 'n':
+                myCaptureBuffer.append('\n');
+                break;
+            case 'r':
+                myCaptureBuffer.append('\r');
+                break;
+            case 't':
+                myCaptureBuffer.append('\t');
+                break;
+            case 'u':
+                final char[] hexChars = new char[4];
+
+                for (int index = 0; index < 4; index++) {
+                    read();
+
+                    if (!isHexDigit()) {
+                        throw expected(MessageCodes.JSON_032);
+                    }
+
+                    hexChars[index] = (char) myCurrent;
+                }
+
+                myCaptureBuffer.append((char) Integer.parseInt(new String(hexChars), 16));
+                break;
+            default:
+                throw expected(MessageCodes.JSON_031);
         }
+
+        read();
+    }
+
+    /**
+     * Reads an exponent.
+     *
+     * @return True if exponent was read; else, false
+     * @throws IOException If there is trouble reading from the stream
+     */
+    private boolean readExponent() throws IOException {
+        if (!readChar('e') && !readChar('E')) {
+            return false;
+        }
+
+        if (!readChar('+')) {
+            readChar('-');
+        }
+
+        if (!readDigit()) {
+            throw expected(MessageCodes.JSON_039);
+        }
+
+        while (readDigit()) {
+            // This is intentionally left empty
+        }
+
+        return true;
+    }
+
+    /**
+     * Reads a boolean FALSE.
+     *
+     * @throws IOException If there is trouble reading the boolean FALSE
+     */
+    private void readFalse() throws IOException {
+        final JsonHandler<Object, Object> currentHandler = myHandlers.peek();
+
+        currentHandler.startBoolean();
+        read();
+        readRequiredChar('a');
+        readRequiredChar('l');
+        readRequiredChar('s');
+        readRequiredChar('e');
+        currentHandler.endBoolean(false);
+    }
+
+    /**
+     * Reads a numeric fraction.
+     *
+     * @return True if a fraction was read; else, false
+     * @throws IOException If there is trouble reading a fraction
+     */
+    private boolean readFraction() throws IOException {
+        if (!readChar('.')) {
+            return false;
+        }
+
+        if (!readDigit()) {
+            throw expected(MessageCodes.JSON_039);
+        }
+
+        while (readDigit()) {
+            // This is intentionally left empty
+        }
+
+        return true;
+    }
+
+    /**
+     * Reads the property name.
+     *
+     * @return The property name
+     * @throws IOException If there is trouble reading the property name
+     */
+    private String readName() throws IOException {
+        if (myCurrent != '"') {
+            throw expected(MessageCodes.JSON_040);
+        }
+
+        return readStringInternal();
+    }
+
+    /**
+     * Reads a JSON Null.
+     *
+     * @throws IOException If there is trouble reading the JSON Null
+     */
+    private void readNull() throws IOException {
+        final JsonHandler<Object, Object> currentHandler = myHandlers.peek();
+
+        currentHandler.startNull();
+        read();
+        readRequiredChar('u');
+        readRequiredChar('l');
+        readRequiredChar('l');
+        currentHandler.endNull();
+    }
+
+    /**
+     * Reads a number.
+     *
+     * @throws IOException If there is trouble reading a number
+     */
+    private void readNumber() throws IOException {
+        final JsonHandler<Object, Object> currentHandler = myHandlers.peek();
+        final int firstDigit;
+
+        currentHandler.startNumber();
+        startCapture();
+        readChar('-');
+        firstDigit = myCurrent;
+
+        if (!readDigit()) {
+            throw expected(MessageCodes.JSON_039);
+        }
+
+        if (firstDigit != '0') {
+            while (readDigit()) {
+            }
+        }
+
+        readFraction();
+        readExponent();
+        currentHandler.endNumber(endCapture());
+    }
+
+    /**
+     * Reads a JSON object from the stream.
+     *
+     * @throws IOException If there is trouble reading from the stream
+     */
+    private void readObject() throws IOException {
+        final Object object = myHandlers.peek().startJsonObject();
+
+        read();
+
+        if (++myNestingLevel > MAX_NESTING_LEVEL) {
+            throw error(LOGGER.getMessage(MessageCodes.JSON_030));
+        }
+
+        skipWhiteSpace();
+
+        if (readChar('}')) {
+            myNestingLevel--;
+            myHandlers.peek().endJsonObject(object);
+
+            return;
+        }
+
+        do {
+            final String name;
+
+            skipWhiteSpace();
+            myHandlers.peek().startPropertyName(object);
+            name = readName();
+            myHandlers.peek().endPropertyName(object, name);
+            skipWhiteSpace();
+
+            if (!readChar(':')) {
+                throw expected(MessageCodes.JSON_038);
+            }
+
+            skipWhiteSpace();
+            myHandlers.peek().startPropertyValue(object, name);
+            readValue();
+            myHandlers.peek().endPropertyValue(object, name);
+            skipWhiteSpace();
+        } while (readChar(',') && !isFinished);
+
+        if (!readChar('}') && !isFinished) {
+            throw expected(MessageCodes.JSON_037);
+        }
+
+        myNestingLevel--;
+        myHandlers.peek().endJsonObject(object);
+    }
+
+    /**
+     * Reads the next required character.
+     *
+     * @param aChar A character
+     * @throws IOException If there is trouble reading the required character
+     */
+    private void readRequiredChar(final char aChar) throws IOException {
+        if (!readChar(aChar)) {
+            // Strings that aren't message codes, just get written as is
+            throw expected(LOGGER.getMessage(MessageCodes.JSON_036, aChar));
+        }
+    }
+
+    /**
+     * Reads a string.
+     *
+     * @throws IOException If there is trouble reading a string
+     */
+    private void readString() throws IOException {
+        final JsonHandler<Object, Object> currentHandler = myHandlers.peek();
+
+        currentHandler.startString();
+        currentHandler.endString(readStringInternal());
+    }
+
+    private String readStringInternal() throws IOException {
+        final String string;
+
+        read();
+        startCapture();
+
+        while (myCurrent != '"') {
+            if (myCurrent == '\\') {
+                pauseCapture();
+                readEscape();
+                startCapture();
+            } else if (myCurrent < 0x20) {
+                throw expected(MessageCodes.JSON_033);
+            } else {
+                read();
+            }
+        }
+
+        string = endCapture();
+        read();
+
+        return string;
+    }
+
+    /**
+     * Reads a boolean TRUE.
+     *
+     * @throws IOException If there is trouble reading the boolean TRUE
+     */
+    private void readTrue() throws IOException {
+        final JsonHandler<Object, Object> currentHandler = myHandlers.peek();
+
+        currentHandler.startBoolean();
+        read();
+        readRequiredChar('r');
+        readRequiredChar('u');
+        readRequiredChar('e');
+        currentHandler.endBoolean(true);
     }
 
     /**
@@ -361,380 +744,29 @@ public final class JsonParser {
                 readNumber();
                 break;
             default:
-                throw expected("value");
+                throw expected(MessageCodes.JSON_035);
         }
     }
 
     /**
-     * Reads an array from the incoming JSON stream.
-     *
-     * @throws IOException If there is trouble reading from the JSON stream
+     * Resets the parser so that it can start parsing the same JSON document with a different handler.
      */
-    private void readArray() throws IOException {
-        final JsonHandler<Object, Object> currentHandler = myHandlers.peek();
-        final Object array = currentHandler.startArray();
+    private void resetState() {
+        isToBeReset = false;
+        isFinished = false;
 
-        read();
-
-        if (++myNestingLevel > MAX_NESTING_LEVEL) {
-            throw error("Nesting too deep");
+        try {
+            myReader.reset();
+            startParsing();
+        } catch (final IOException details) {
+            throw new ParseException(getLocation(), details.getMessage());
         }
-
-        skipWhiteSpace();
-
-        if (readChar(']')) {
-            myNestingLevel--;
-            currentHandler.endArray(array);
-
-            return;
-        }
-
-        do {
-            skipWhiteSpace();
-            currentHandler.startArrayValue(array);
-            readValue();
-            currentHandler.endArrayValue(array);
-            skipWhiteSpace();
-        } while (readChar(',') && !isFinished);
-
-        if (!readChar(']') && !isFinished) {
-            throw expected("',' or ']'");
-        }
-
-        myNestingLevel--;
-        currentHandler.endArray(array);
-    }
-
-    /**
-     * Reads a JSON object from the stream.
-     *
-     * @throws IOException If there is trouble reading from the stream
-     */
-    private void readObject() throws IOException {
-        final Object object = myHandlers.peek().startJsonObject();
-
-        read();
-
-        if (++myNestingLevel > MAX_NESTING_LEVEL) {
-            throw error("Nesting too deep");
-        }
-
-        skipWhiteSpace();
-
-        if (readChar('}')) {
-            myNestingLevel--;
-            myHandlers.peek().endJsonObject(object);
-
-            return;
-        }
-
-        do {
-            final String name;
-
-            skipWhiteSpace();
-            myHandlers.peek().startPropertyName(object);
-            name = readName();
-            myHandlers.peek().endPropertyName(object, name);
-            skipWhiteSpace();
-
-            if (!readChar(':')) {
-                throw expected("':'");
-            }
-
-            skipWhiteSpace();
-            myHandlers.peek().startPropertyValue(object, name);
-            readValue();
-            myHandlers.peek().endPropertyValue(object, name);
-            skipWhiteSpace();
-        } while (readChar(',') && !isFinished);
-
-        if (!readChar('}') && !isFinished) {
-            throw expected("',' or '}'");
-        }
-
-        myNestingLevel--;
-        myHandlers.peek().endJsonObject(object);
-    }
-
-    /**
-     * Reads the property name.
-     *
-     * @return The property name
-     * @throws IOException If there is trouble reading the property name
-     */
-    private String readName() throws IOException {
-        if (myCurrent != '"') {
-            throw expected("name");
-        }
-
-        return readStringInternal();
-    }
-
-    /**
-     * Reads a JSON Null.
-     *
-     * @throws IOException If there is trouble reading the JSON Null
-     */
-    private void readNull() throws IOException {
-        final JsonHandler<Object, Object> currentHandler = myHandlers.peek();
-
-        currentHandler.startNull();
-        read();
-        readRequiredChar('u');
-        readRequiredChar('l');
-        readRequiredChar('l');
-        currentHandler.endNull();
-    }
-
-    /**
-     * Reads a boolean TRUE.
-     *
-     * @throws IOException If there is trouble reading the boolean TRUE
-     */
-    private void readTrue() throws IOException {
-        final JsonHandler<Object, Object> currentHandler = myHandlers.peek();
-
-        currentHandler.startBoolean();
-        read();
-        readRequiredChar('r');
-        readRequiredChar('u');
-        readRequiredChar('e');
-        currentHandler.endBoolean(true);
-    }
-
-    /**
-     * Reads a boolean FALSE.
-     *
-     * @throws IOException If there is trouble reading the boolean FALSE
-     */
-    private void readFalse() throws IOException {
-        final JsonHandler<Object, Object> currentHandler = myHandlers.peek();
-
-        currentHandler.startBoolean();
-        read();
-        readRequiredChar('a');
-        readRequiredChar('l');
-        readRequiredChar('s');
-        readRequiredChar('e');
-        currentHandler.endBoolean(false);
-    }
-
-    /**
-     * Reads the next required character.
-     *
-     * @param aChar A character
-     * @throws IOException If there is trouble reading the required character
-     */
-    private void readRequiredChar(final char aChar) throws IOException {
-        if (!readChar(aChar)) {
-            throw expected("'" + aChar + "'");
-        }
-    }
-
-    /**
-     * Reads a string.
-     *
-     * @throws IOException If there is trouble reading a string
-     */
-    private void readString() throws IOException {
-        final JsonHandler<Object, Object> currentHandler = myHandlers.peek();
-
-        currentHandler.startString();
-        currentHandler.endString(readStringInternal());
-    }
-
-    private String readStringInternal() throws IOException {
-        final String string;
-
-        read();
-        startCapture();
-
-        while (myCurrent != '"') {
-            if (myCurrent == '\\') {
-                pauseCapture();
-                readEscape();
-                startCapture();
-            } else if (myCurrent < 0x20) {
-                throw expected("valid string character");
-            } else {
-                read();
-            }
-        }
-
-        string = endCapture();
-        read();
-
-        return string;
-    }
-
-    /**
-     * Reads an escape character.
-     *
-     * @throws IOException If there is trouble reading an escape character
-     */
-    private void readEscape() throws IOException {
-        read();
-
-        switch (myCurrent) {
-            case '"':
-            case '/':
-            case '\\':
-                myCaptureBuffer.append((char) myCurrent);
-                break;
-            case 'b':
-                myCaptureBuffer.append('\b');
-                break;
-            case 'f':
-                myCaptureBuffer.append('\f');
-                break;
-            case 'n':
-                myCaptureBuffer.append('\n');
-                break;
-            case 'r':
-                myCaptureBuffer.append('\r');
-                break;
-            case 't':
-                myCaptureBuffer.append('\t');
-                break;
-            case 'u':
-                final char[] hexChars = new char[4];
-
-                for (int index = 0; index < 4; index++) {
-                    read();
-
-                    if (!isHexDigit()) {
-                        throw expected("hexadecimal digit");
-                    }
-
-                    hexChars[index] = (char) myCurrent;
-                }
-
-                myCaptureBuffer.append((char) Integer.parseInt(new String(hexChars), 16));
-                break;
-            default:
-                throw expected("valid escape sequence");
-        }
-
-        read();
-    }
-
-    /**
-     * Reads a number.
-     *
-     * @throws IOException If there is trouble reading a number
-     */
-    private void readNumber() throws IOException {
-        final JsonHandler<Object, Object> currentHandler = myHandlers.peek();
-        final int firstDigit;
-
-        currentHandler.startNumber();
-        startCapture();
-        readChar('-');
-        firstDigit = myCurrent;
-
-        if (!readDigit()) {
-            throw expected("digit");
-        }
-
-        if (firstDigit != '0') {
-            while (readDigit()) {
-            }
-        }
-
-        readFraction();
-        readExponent();
-        currentHandler.endNumber(endCapture());
-    }
-
-    /**
-     * Reads a numeric fraction.
-     *
-     * @return True if a fraction was read; else, false
-     * @throws IOException If there is trouble reading a fraction
-     */
-    private boolean readFraction() throws IOException {
-        if (!readChar('.')) {
-            return false;
-        }
-
-        if (!readDigit()) {
-            throw expected("digit");
-        }
-
-        while (readDigit()) {
-
-        }
-        return true;
-    }
-
-    private boolean readExponent() throws IOException {
-        if (!readChar('e') && !readChar('E')) {
-            return false;
-        }
-
-        if (!readChar('+')) {
-            readChar('-');
-        }
-
-        if (!readDigit()) {
-            throw expected("digit");
-        }
-
-        while (readDigit()) {
-
-        }
-        return true;
-    }
-
-    private boolean readChar(final char aChar) throws IOException {
-        if (myCurrent != aChar) {
-            return false;
-        }
-
-        read();
-        return true;
-    }
-
-    private boolean readDigit() throws IOException {
-        if (!isDigit()) {
-            return false;
-        }
-
-        read();
-        return true;
     }
 
     private void skipWhiteSpace() throws IOException {
         while (isWhiteSpace()) {
             read();
         }
-    }
-
-    private void read() throws IOException {
-        if (myIndex == myFill) {
-            if (myCaptureStart != -1) {
-                myCaptureBuffer.append(myBuffer, myCaptureStart, myFill - myCaptureStart);
-                myCaptureStart = 0;
-            }
-
-            myBufferOffset += myFill;
-            myFill = myReader.read(myBuffer, 0, myBuffer.length);
-            myIndex = 0;
-
-            if (myFill == -1) {
-                myCurrent = -1;
-                myIndex++;
-
-                return;
-            }
-        }
-
-        if (myCurrent == '\n') {
-            myLine++;
-            myLineOffset = myBufferOffset + myIndex;
-        }
-
-        myCurrent = myBuffer[myIndex++];
     }
 
     private void startCapture() {
@@ -745,59 +777,37 @@ public final class JsonParser {
         myCaptureStart = myIndex - 1;
     }
 
-    private void pauseCapture() {
-        final int end = myCurrent == -1 ? myIndex : myIndex - 1;
-
-        myCaptureBuffer.append(myBuffer, myCaptureStart, end - myCaptureStart);
-        myCaptureStart = -1;
-    }
-
-    private String endCapture() {
-        final int start = myCaptureStart;
-        final int end = myIndex - 1;
-
-        myCaptureStart = -1;
-
-        if (myCaptureBuffer.length() > 0) {
-            final String captured;
-
-            myCaptureBuffer.append(myBuffer, start, end - start);
-            captured = myCaptureBuffer.toString();
-            myCaptureBuffer.setLength(0);
-
-            return captured;
+    /**
+     * Starts parsing the JSON document.
+     *
+     * @throws IOException If there is trouble reading the JSON document
+     */
+    private void startParsing() throws IOException {
+        if (mySnapshot != null) {
+            mySnapshot.restore();
+        } else {
+            myBuffer = new char[myBufferSize];
+            myBufferOffset = 0;
+            myIndex = 0;
+            myFill = 0;
+            myLine = 1;
+            myLineOffset = 0;
+            myCurrent = 0;
+            myCaptureStart = -1;
         }
 
-        return new String(myBuffer, start, end - start);
-    }
+        read();
+        skipWhiteSpace();
+        readValue();
+        skipWhiteSpace();
 
-    private ParseException expected(final String aExpected) {
-        if (isEndOfText()) {
-            return error("Unexpected end of input");
+        if (!isFinished && !isEndOfText()) {
+            throw error(MessageCodes.JSON_034);
         }
 
-        return error("Expected " + aExpected);
-    }
-
-    private ParseException error(final String aMessage) {
-        return new ParseException(getLocation(), aMessage);
-    }
-
-    private boolean isWhiteSpace() {
-        return myCurrent == ' ' || myCurrent == '\t' || myCurrent == '\n' || myCurrent == '\r';
-    }
-
-    private boolean isDigit() {
-        return myCurrent >= '0' && myCurrent <= '9';
-    }
-
-    private boolean isHexDigit() {
-        return myCurrent >= '0' && myCurrent <= '9' || myCurrent >= 'a' && myCurrent <= 'f' ||
-                myCurrent >= 'A' && myCurrent <= 'F';
-    }
-
-    private boolean isEndOfText() {
-        return myCurrent == -1;
+        if (isToBeReset) {
+            resetState();
+        }
     }
 
     /**
@@ -805,21 +815,29 @@ public final class JsonParser {
      */
     private class Snapshot {
 
+        /** A snapshot of the parser's buffer. */
         final char[] mySnapshotBuffer;
 
+        /** A snapshot of the parser's buffer offset. */
         final int mySnapshotBufferOffset;
 
-        final int mySnapshotIndex;
+        /** A snapshot of the parser's start of capture. */
+        final int mySnapshotCaptureStart;
 
-        final int mySnapshotFill;
-
-        final int mySnapshotLine;
-
-        final int mySnapshotLineOffset;
-
+        /** A snapshot of the parser's current character. */
         final int mySnapshotCurrent;
 
-        final int mySnapshotCaptureStart;
+        /** A snapshot of the parser's fill. */
+        final int mySnapshotFill;
+
+        /** A snapshot of the parser's index position. */
+        final int mySnapshotIndex;
+
+        /** A snapshot of the parser's current line. */
+        final int mySnapshotLine;
+
+        /** A snapshot of the parser's current line offset. */
+        final int mySnapshotLineOffset;
 
         /**
          * Creates a new snapshot of the JSON parser.

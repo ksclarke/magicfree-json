@@ -4,27 +4,55 @@
 
 <properties>
   <entry key="message-class-name">info.freelibrary.json.MessageCodes</entry>
-
-  <entry key="JSON_000">{}</entry>
+  
   <entry key="JSON_001">Infinite and NaN values not permitted in JSON</entry>
-  <entry key="JSON_002">values is null</entry>
-  <entry key="JSON_003">string is null</entry>
-  <entry key="JSON_004">file is null</entry>
-  <entry key="JSON_005">object is null</entry>
-  <entry key="JSON_006">name is null</entry>
-  <entry key="JSON_007">value is null</entry>
+  <entry key="JSON_002">Supplied values array is null</entry>
+  <entry key="JSON_003">Supplied string is null</entry>
+  <entry key="JSON_004">Supplied file is null</entry>
+  <entry key="JSON_005">Supplied object is null</entry>
+  <entry key="JSON_006">Supplied name is null</entry>
+  <entry key="JSON_007">Supplied value is null</entry>
   <entry key="JSON_008">Unexpected end of input at </entry>
-  <entry key="JSON_009">writer is null</entry>
-  <entry key="JSON_010">config is null</entry>
+  <entry key="JSON_009">Supplied writer is null</entry>
+  <entry key="JSON_010">Supplied config is null</entry>
   <entry key="JSON_011">Not an object: null</entry>
   <entry key="JSON_012">Not an array: null</entry>
   <entry key="JSON_013">Not a string: null</entry>
   <entry key="JSON_014">Not a number: null</entry>
   <entry key="JSON_015">Not a boolean: null</entry>
   <entry key="JSON_016">Indentation cannot be a negative number</entry>
-  <entry key="JSON_017">array is null</entry>
+  <entry key="JSON_017">Supplied JSON array is null</entry>
   <entry key="JSON_018">Infinite and NaN values not permitted in JSON</entry>
   <entry key="JSON_019">Handler is null</entry>
   <entry key="JSON_020">JsonPointers were not resolved as expected</entry>
+  <entry key="JSON_021">The JSON parser is alreaday set</entry>
+  <entry key="JSON_022">Supplied reader is null</entry>
+  <entry key="JSON_023">Null is not accepted as a JSON literal</entry>
+  <entry key="JSON_024">JsonObject doesn't have another property</entry>
+  <entry key="JSON_025">Updating parser's handler to: {}</entry>
+  <entry key="JSON_026">Buffersize is zero or negative</entry>
+  <entry key="JSON_027">Unexpected end of input</entry>
+  <entry key="JSON_029">Expected ',' or ']'</entry>
+  <entry key="JSON_030">Nesting too deep</entry>
+  <entry key="JSON_031">Expected valid escape sequence</entry>
+  <entry key="JSON_032">Expected hexadecimal digit</entry>
+  <entry key="JSON_033">Expected valid string character</entry>
+  <entry key="JSON_034">Unexpected character</entry>
+  <entry key="JSON_035">Expected JSON value</entry>
+  <entry key="JSON_036">Expected character: '{}'</entry>
+  <entry key="JSON_037">Expected ',' or '}'</entry>
+  <entry key="JSON_038">Expected ':'</entry>
+  <entry key="JSON_039">Expected digit</entry>
+  <entry key="JSON_040">Expected property name</entry>
+  <entry key="JSON_041">Supplied URL is null</entry>
+  <entry key="JSON_042">No mark has been set</entry>
+  <entry key="JSON_043">Not an array: {}</entry>
+  <entry key="JSON_044">Not a boolean: {}</entry>
+  <entry key="JSON_045">Not a number: {}</entry>
+  <entry key="JSON_046">Not an object: {}</entry>
+  <entry key="JSON_047">Not a string: {}</entry>
+  <entry key="JSON_048">Subclasses of JsonValue should be compared</entry>
+  <entry key="JSON_049">Subclasses of JsonValue should be hashed</entry>
+  <entry key="JSON_050">line {}, column {}</entry>
 
 </properties>

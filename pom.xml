@@ -6,7 +6,7 @@
   <artifactId>magicfree-json</artifactId>
   <version>${revision}</version>
   <packaging>jar</packaging>
-  <name>Magicfree JSON</name>
+  <name>MagicFree JSON</name>
   <description>A minimal JSON parser and writer</description>
   <url>https://github.com/ksclarke/magicfree-json</url>
 
@@ -28,18 +28,6 @@
   </scm>
 
   <developers>
-    <!--
-    <developer>
-      <id>rsternberg</id>
-      <name>Ralf Sternberg</name>
-      <email>rsternberg@eclipsesource.com</email>
-      <organization>EclipseSource</organization>
-      <organizationUrl>http://eclipsesource.com/</organizationUrl>
-      <roles>
-        <role>Original developer of minimal-json</role>
-      </roles>
-    </developer>
-    -->
     <developer>
       <id>ksclarke</id>
       <name>Kevin S. Clarke</name>
@@ -47,14 +35,14 @@
       <organization>FreeLibrary</organization>
       <organizationUrl>http://projects.freelibrary.info</organizationUrl>
       <roles>
-        <role>Developer who forked minimal-json to create magicfree-json</role>
+        <role>Dev who forked minimal-json to create magicfree-json</role>
       </roles>
     </developer>
   </developers>
 
   <properties>
     <!-- Library dependency versions -->
-    <freelib.utils.version>4.0.3</freelib.utils.version>
+    <freelib.utils.version>5.0.10</freelib.utils.version>
 
     <!-- Plugin dependency versions -->
     <clean.plugin.version>3.3.2</clean.plugin.version>
@@ -255,7 +243,7 @@
   <parent>
     <artifactId>freelib-parent</artifactId>
     <groupId>info.freelibrary</groupId>
-    <version>8.0.7</version>
+    <version>12.0.3</version>
   </parent>
 
 </project>

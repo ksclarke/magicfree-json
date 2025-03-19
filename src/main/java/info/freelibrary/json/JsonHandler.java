@@ -1,3 +1,4 @@
+// License info: https://github.com/ksclarke/magicfree-json#licenses
 
 package info.freelibrary.json;
 
@@ -28,42 +29,6 @@ package info.freelibrary.json;
  * @see JsonParser
  */
 public interface JsonHandler<O, I> {
-
-    /**
-     * Sets the handler's JSON object.
-     *
-     * @param aObject A JSON object
-     */
-    default void setObject(final O aObject) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * Gets the handler's JSON object.
-     *
-     * @return A JSON object
-     */
-    default O getObject() {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * Sets the handler's JSON array iterator.
-     *
-     * @param aIterable A JSON array iterator
-     */
-    default void setIterable(final I aIterable) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * Gets the handler's JSON array.
-     *
-     * @return Gets the JSON array iterator
-     */
-    default I getIterable() {
-        throw new UnsupportedOperationException();
-    }
 
     /**
      * Indicates the end of an array in the JSON input. This method will be called after reading the closing square
@@ -97,6 +62,16 @@ public interface JsonHandler<O, I> {
     }
 
     /**
+     * Indicates the end of an object in the JSON input. This method will be called after reading the closing curly
+     * bracket character (<code>'}'</code>).
+     *
+     * @param aObject the object handler returned from {@link #startJsonObject()}, or null if not provided
+     */
+    default void endJsonObject(final O aObject) {
+        // This is intentionally left empty.
+    }
+
+    /**
      * Indicates the end of a <code>null</code> literal in the JSON input. This method will be called after reading the
      * last character of the literal.
      */
@@ -111,16 +86,6 @@ public interface JsonHandler<O, I> {
      * @param aString The parsed number string
      */
     default void endNumber(final String aString) {
-        // This is intentionally left empty.
-    }
-
-    /**
-     * Indicates the end of an object in the JSON input. This method will be called after reading the closing curly
-     * bracket character (<code>'}'</code>).
-     *
-     * @param aObject the object handler returned from {@link #startJsonObject()}, or null if not provided
-     */
-    default void endJsonObject(final O aObject) {
         // This is intentionally left empty.
     }
 
@@ -155,6 +120,57 @@ public interface JsonHandler<O, I> {
      */
     default void endString(final String aString) {
         // This is intentionally left empty.
+    }
+
+    /**
+     * Gets the handler's JSON array.
+     *
+     * @return Gets the JSON array iterator
+     */
+    default I getIterable() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Gets the handler's JSON object.
+     *
+     * @return A JSON object
+     */
+    default O getObject() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Sets the handler's JSON array iterator.
+     *
+     * @param aIterable A JSON array iterator
+     */
+    default void setIterable(final I aIterable) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Sets the parser that the handler is using so that the handler has access to the parser's location. This is set
+     * automatically by the JsonParser when it is created with a JsonHandler.
+     * <p>
+     * Implementations should throw an IllegalStateException if this method is called more than once.
+     * </p>
+     *
+     * @param aParser A JsonParser being used by this handler
+     * @throws IllegalStateException If the handler's parser has already been set
+     * @throws UnsupportedOperationException If the handler doesn't implement this method
+     */
+    default void setJsonParser(final JsonParser aParser) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Sets the handler's JSON object.
+     *
+     * @param aObject A JSON object
+     */
+    default void setObject(final O aObject) {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -194,22 +210,6 @@ public interface JsonHandler<O, I> {
     }
 
     /**
-     * Indicates the beginning of a <code>null</code> literal in the JSON input. This method will be called when reading
-     * the first character of the literal.
-     */
-    default void startNull() {
-        // This is intentionally left empty.
-    }
-
-    /**
-     * Indicates the beginning of a number in the JSON input. This method will be called when reading the first
-     * character of the number.
-     */
-    default void startNumber() {
-        // This is intentionally left empty.
-    }
-
-    /**
      * Indicates the beginning of an object in the JSON input. This method will be called when reading the opening curly
      * bracket character (<code>'{'</code>).
      * <p>
@@ -225,6 +225,22 @@ public interface JsonHandler<O, I> {
      */
     default O startJsonObject() {
         return null;
+    }
+
+    /**
+     * Indicates the beginning of a <code>null</code> literal in the JSON input. This method will be called when reading
+     * the first character of the literal.
+     */
+    default void startNull() {
+        // This is intentionally left empty.
+    }
+
+    /**
+     * Indicates the beginning of a number in the JSON input. This method will be called when reading the first
+     * character of the number.
+     */
+    default void startNumber() {
+        // This is intentionally left empty.
     }
 
     /**
@@ -254,21 +270,6 @@ public interface JsonHandler<O, I> {
      */
     default void startString() {
         // This is intentionally left empty.
-    }
-
-    /**
-     * Sets the parser that the handler is using so that the handler has access to the parser's location. This is set
-     * automatically by the JsonParser when it is created with a JsonHandler.
-     * <p>
-     * Implementations should throw an IllegalStateException if this method is called more than once.
-     * </p>
-     *
-     * @param aParser A JsonParser being used by this handler
-     * @throws IllegalStateException If the handler's parser has already been set
-     * @throws UnsupportedOperationException If the handler doesn't implement this method
-     */
-    default void setJsonParser(final JsonParser aParser) {
-        throw new UnsupportedOperationException();
     }
 
 }

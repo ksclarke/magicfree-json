@@ -1,3 +1,4 @@
+// License info: https://github.com/ksclarke/magicfree-json#licenses
 
 package info.freelibrary.json;
 
@@ -40,99 +41,23 @@ import info.freelibrary.util.LoggerFactory;
  */
 public final class Json {
 
-    /**
-     * Represents the JSON literal <code>null</code>.
-     */
-    public static final JsonValue NULL = new JsonLiteral("null");
-
-    /**
-     * Represents the JSON literal <code>true</code>.
-     */
-    public static final JsonValue TRUE = new JsonLiteral("true");
-
-    /**
-     * Represents the JSON literal <code>false</code>.
-     */
+    /** Represents the JSON literal <code>false</code>. */
     public static final JsonValue FALSE = new JsonLiteral("false");
 
-    /**
-     * A logger for the Json class.
-     */
+    /** Represents the JSON literal <code>null</code>. */
+    public static final JsonValue NULL = new JsonLiteral("null");
+
+    /** Represents the JSON literal <code>true</code>. */
+    public static final JsonValue TRUE = new JsonLiteral("true");
+
+    /** A logger for the {@code Json} class. */
     private static final Logger LOGGER = LoggerFactory.getLogger(Json.class, MessageCodes.BUNDLE);
 
     /**
-     * Creates a new Json instance.
+     * Creates a new {@code Json} instance.
      */
     private Json() {
         // This is intentionally left empty
-    }
-
-    /**
-     * Returns a JsonValue instance that represents the given <code>int</code> value.
-     *
-     * @param aValue The value to get a JSON representation for
-     * @return A JSON value that represents the given value
-     */
-    public static JsonValue value(final int aValue) {
-        return new JsonNumber(Integer.toString(aValue, 10));
-    }
-
-    /**
-     * Returns a JsonValue instance that represents the given <code>long</code> value.
-     *
-     * @param aValue The value to get a JSON representation for
-     * @return A JSON value that represents the given value
-     */
-    public static JsonValue value(final long aValue) {
-        return new JsonNumber(Long.toString(aValue, 10));
-    }
-
-    /**
-     * Returns a JsonValue instance that represents the given <code>float</code> value.
-     *
-     * @param aValue The value to get a JSON representation for
-     * @return A JSON value that represents the given value
-     */
-    public static JsonValue value(final float aValue) {
-        if (Float.isInfinite(aValue) || Float.isNaN(aValue)) {
-            throw new IllegalArgumentException(LOGGER.getMessage(MessageCodes.JSON_018));
-        }
-
-        return new JsonNumber(cutOffPointZero(Float.toString(aValue)));
-    }
-
-    /**
-     * Returns a JsonValue instance that represents the given <code>double</code> value.
-     *
-     * @param aValue The value to get a JSON representation for
-     * @return A JSON value that represents the given value
-     */
-    public static JsonValue value(final double aValue) {
-        if (Double.isInfinite(aValue) || Double.isNaN(aValue)) {
-            throw new IllegalArgumentException(LOGGER.getMessage(MessageCodes.JSON_018));
-        }
-
-        return new JsonNumber(cutOffPointZero(Double.toString(aValue)));
-    }
-
-    /**
-     * Returns a JsonValue instance that represents the given string.
-     *
-     * @param aString The string to get a JSON representation for
-     * @return A JSON value that represents the given string
-     */
-    public static JsonValue value(final String aString) {
-        return aString == null ? NULL : new JsonString(aString);
-    }
-
-    /**
-     * Returns a JsonValue instance that represents the given <code>boolean</code> value.
-     *
-     * @param aValue The value to get a JSON representation for
-     * @return A JSON value that represents the given value
-     */
-    public static JsonValue value(final boolean aValue) {
-        return aValue ? TRUE : FALSE;
     }
 
     /**
@@ -142,6 +67,54 @@ public final class Json {
      */
     public static JsonArray array() {
         return new JsonArray();
+    }
+
+    /**
+     * Creates a new JsonArray that contains the JSON representations of the given <code>boolean</code> values.
+     *
+     * @param values the values to be included in the new JSON array
+     * @return a new JSON array that contains the given values
+     */
+    public static JsonArray array(final boolean... values) {
+        final JsonArray array = new JsonArray();
+
+        for (final boolean value : Objects.requireNonNull(values, LOGGER.getMessage(MessageCodes.JSON_002))) {
+            array.add(value);
+        }
+
+        return array;
+    }
+
+    /**
+     * Creates a new JsonArray that contains the JSON representations of the given <code>double</code> values.
+     *
+     * @param values the values to be included in the new JSON array
+     * @return a new JSON array that contains the given values
+     */
+    public static JsonArray array(final double... values) {
+        final JsonArray array = new JsonArray();
+
+        for (final double value : Objects.requireNonNull(values, LOGGER.getMessage(MessageCodes.JSON_002))) {
+            array.add(value);
+        }
+
+        return array;
+    }
+
+    /**
+     * Creates a new JsonArray that contains the JSON representations of the given <code>float</code> values.
+     *
+     * @param values the values to be included in the new JSON array
+     * @return a new JSON array that contains the given values
+     */
+    public static JsonArray array(final float... values) {
+        final JsonArray array = new JsonArray();
+
+        for (final float value : Objects.requireNonNull(values, LOGGER.getMessage(MessageCodes.JSON_002))) {
+            array.add(value);
+        }
+
+        return array;
     }
 
     /**
@@ -177,54 +150,6 @@ public final class Json {
     }
 
     /**
-     * Creates a new JsonArray that contains the JSON representations of the given <code>float</code> values.
-     *
-     * @param values the values to be included in the new JSON array
-     * @return a new JSON array that contains the given values
-     */
-    public static JsonArray array(final float... values) {
-        final JsonArray array = new JsonArray();
-
-        for (final float value : Objects.requireNonNull(values, "values is null")) {
-            array.add(value);
-        }
-
-        return array;
-    }
-
-    /**
-     * Creates a new JsonArray that contains the JSON representations of the given <code>double</code> values.
-     *
-     * @param values the values to be included in the new JSON array
-     * @return a new JSON array that contains the given values
-     */
-    public static JsonArray array(final double... values) {
-        final JsonArray array = new JsonArray();
-
-        for (final double value : Objects.requireNonNull(values, "values is null")) {
-            array.add(value);
-        }
-
-        return array;
-    }
-
-    /**
-     * Creates a new JsonArray that contains the JSON representations of the given <code>boolean</code> values.
-     *
-     * @param values the values to be included in the new JSON array
-     * @return a new JSON array that contains the given values
-     */
-    public static JsonArray array(final boolean... values) {
-        final JsonArray array = new JsonArray();
-
-        for (final boolean value : Objects.requireNonNull(values, "values is null")) {
-            array.add(value);
-        }
-
-        return array;
-    }
-
-    /**
      * Creates a new JsonArray that contains the JSON representations of the given strings.
      *
      * @param aStringsArray the strings to be included in the new JSON array
@@ -233,7 +158,7 @@ public final class Json {
     public static JsonArray array(final String... aStringsArray) {
         final JsonArray array = new JsonArray();
 
-        for (final String value : Objects.requireNonNull(aStringsArray, "values is null")) {
+        for (final String value : Objects.requireNonNull(aStringsArray, LOGGER.getMessage(MessageCodes.JSON_002))) {
             array.add(value);
         }
 
@@ -250,20 +175,6 @@ public final class Json {
     }
 
     /**
-     * Parses the given input string as JSON. The input must contain a valid JSON value, optionally padded with
-     * whitespace.
-     *
-     * @param aString the input string, must be valid JSON
-     * @return a value that represents the parsed JSON
-     * @throws ParseException if the input is not valid JSON
-     */
-    public static JsonValue parse(final String aString) {
-        final DefaultHandler handler = new DefaultHandler();
-        new JsonParser(handler).parse(Objects.requireNonNull(aString, "string is null"));
-        return handler.getResult();
-    }
-
-    /**
      * Reads the entire input from the given reader and parses it as JSON. The input must contain a valid JSON value,
      * optionally padded with whitespace.
      *
@@ -273,9 +184,93 @@ public final class Json {
      * @throws ParseException If the input is not valid JSON
      */
     public static JsonValue parse(final Reader aReader) throws IOException {
+        final Reader reader = Objects.requireNonNull(aReader, LOGGER.getMessage(MessageCodes.JSON_022));
         final DefaultHandler handler = new DefaultHandler();
-        new JsonParser(handler).parse(Objects.requireNonNull(aReader, "reader is null"));
+
+        new JsonParser(handler).parse(reader);
         return handler.getResult();
+    }
+
+    /**
+     * Parses the given input string as JSON. The input must contain a valid JSON value, optionally padded with
+     * whitespace.
+     *
+     * @param aString the input string, must be valid JSON
+     * @return a value that represents the parsed JSON
+     * @throws ParseException if the input is not valid JSON
+     */
+    public static JsonValue parse(final String aString) {
+        final DefaultHandler handler = new DefaultHandler();
+        new JsonParser(handler).parse(Objects.requireNonNull(aString, LOGGER.getMessage(MessageCodes.JSON_003)));
+        return handler.getResult();
+    }
+
+    /**
+     * Returns a JsonValue instance that represents the given <code>boolean</code> value.
+     *
+     * @param aValue The value to get a JSON representation for
+     * @return A JSON value that represents the given value
+     */
+    public static JsonValue value(final boolean aValue) {
+        return aValue ? TRUE : FALSE;
+    }
+
+    /**
+     * Returns a JsonValue instance that represents the given <code>double</code> value.
+     *
+     * @param aValue The value to get a JSON representation for
+     * @return A JSON value that represents the given value
+     */
+    public static JsonValue value(final double aValue) {
+        if (Double.isInfinite(aValue) || Double.isNaN(aValue)) {
+            throw new IllegalArgumentException(LOGGER.getMessage(MessageCodes.JSON_018));
+        }
+
+        return new JsonNumber(cutOffPointZero(Double.toString(aValue)));
+    }
+
+    /**
+     * Returns a JsonValue instance that represents the given <code>float</code> value.
+     *
+     * @param aValue The value to get a JSON representation for
+     * @return A JSON value that represents the given value
+     */
+    public static JsonValue value(final float aValue) {
+        if (Float.isInfinite(aValue) || Float.isNaN(aValue)) {
+            throw new IllegalArgumentException(LOGGER.getMessage(MessageCodes.JSON_018));
+        }
+
+        return new JsonNumber(cutOffPointZero(Float.toString(aValue)));
+    }
+
+    /**
+     * Returns a JsonValue instance that represents the given <code>int</code> value.
+     *
+     * @param aValue The value to get a JSON representation for
+     * @return A JSON value that represents the given value
+     */
+    public static JsonValue value(final int aValue) {
+        return new JsonNumber(Integer.toString(aValue, 10));
+    }
+
+    /**
+     * Returns a JsonValue instance that represents the given <code>long</code> value.
+     *
+     * @param aValue The value to get a JSON representation for
+     * @return A JSON value that represents the given value
+     */
+    public static JsonValue value(final long aValue) {
+        return new JsonNumber(Long.toString(aValue, 10));
+    }
+
+    /**
+     * Returns a JsonValue instance that represents the given string.
+     *
+     * @param aString The string to get a JSON representation for
+     * @return A JSON value that represents the given string
+     */
+    public static JsonValue value(final String aString) {
+        return aString == null ? NULL : new JsonString(aString);
     }
 
     /**

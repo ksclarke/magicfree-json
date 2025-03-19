@@ -1,48 +1,34 @@
-/*******************************************************************************
- * Copyright (c) 2013, 2016 EclipseSource.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- ******************************************************************************/
+// License info: https://github.com/ksclarke/magicfree-json#licenses
 
 package info.freelibrary.json;
 
+import java.util.Objects;
+
 import info.freelibrary.util.I18nRuntimeException;
+import info.freelibrary.util.StringUtils;
 
 /**
  * An unchecked exception to indicate that an input does not qualify as valid JSON.
  */
-@SuppressWarnings("serial") // use default serial UID
 public class ParseException extends I18nRuntimeException {
 
-    /**
-     * The myLocation of the exception.
-     */
+    /** The location details string template. */
+    private static final String LOCATION = " at line {}, column {}";
+
+    /** The {@code serialVersionUID} for the {@code ParseException} class. */
+    private static final long serialVersionUID = 3289678212057322726L;
+
+    /** The myLocation of the exception. */
     private final Location myLocation;
 
     /**
      * Creates a new parse exception.
      *
      * @param aLocation An exception location
-     * @param aMessage An exception message
+     * @param aMessageCode An exception message code
      */
-    public ParseException(final Location aLocation, final String aMessage) {
-        super(MessageCodes.BUNDLE, aMessage + " at " + aLocation);
+    public ParseException(final Location aLocation, final String aMessageCode) {
+        super(MessageCodes.BUNDLE, aMessageCode);
         myLocation = aLocation;
     }
 
@@ -58,6 +44,24 @@ public class ParseException extends I18nRuntimeException {
         myLocation = aLocation;
     }
 
+    @Override
+    public boolean equals(final Object aObject) {
+        final ParseException exception;
+
+        if (this == aObject) {
+            return true;
+        }
+
+        if (aObject == null || getClass() != aObject.getClass()) {
+            return false;
+        }
+
+        exception = (ParseException) aObject;
+        return Objects.equals(myLocation, exception.myLocation) &&
+                Objects.equals(getMessage(), exception.getMessage()) &&
+                Objects.equals(getCause(), exception.getCause());
+    }
+
     /**
      * Returns the myLocation at which the error occurred.
      *
@@ -67,4 +71,13 @@ public class ParseException extends I18nRuntimeException {
         return myLocation;
     }
 
+    @Override
+    public String getMessage() {
+        return super.getMessage() + StringUtils.format(LOCATION, myLocation.getLine(), myLocation.getColumn());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(myLocation, getMessage(), getCause());
+    }
 }
