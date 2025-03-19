@@ -12,22 +12,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java_version: [ 11, 17, 21 ]
+        java_version: [ 17, 21 ]
         maven_version: [ 3.8.6 ]
         graalvm_version: [ '22.3.3', '' ]
         distribution: [ 'graalvm-community', '' ]
         # A complex config is needed because GraalVM handles JDK 11 and post-JDK 11 setup differently
         # JDK 11 is deprecated and falls out of support in Oct. 2024
         exclude:
-          - java_version: 11
-            graalvm_version: ''
-            distribution: 'graalvm-community'
-          - java_version: 11
-            graalvm_version: '22.3.3'
-            distribution: 'graalvm-community'
-          - java_version: 11
-            graalvm_version: ''
-            distribution: ''
           - java_version: 17
             graalvm_version: '22.3.3'
             distribution: ''
@@ -68,4 +59,4 @@ jobs:
           mvn -V --no-transfer-progress --batch-mode \
           -DlogLevel=DEBUG -DtestLogLevel=DEBUG \
           -Dorg.slf4j.simpleLogger.log.net.sourceforge.pmd=error \
-          -Pdefault clean verify
+          clean verify
