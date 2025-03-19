@@ -1,26 +1,31 @@
+// License info: https://github.com/ksclarke/magicfree-json#licenses
 
 package info.freelibrary.json;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Defines the options used when JsonObject(s) or JsonArray(s) are compared.
  */
 public class JsonOptions {
 
-    // TODO:
-    // * Option to compare values with regex similarity, by property name
+    /** The constant for the collapsible arrays option. */
+    public static final String COLLAPSIBLE_ARRAYS = "collapsibleArrays";
 
-    /**
-     * Whether the comparison ignores JSON value order.
-     */
-    private boolean myComparisonIgnoresOrder;
+    /** The constant for the ignore order option. */
+    public static final String IGNORE_ORDER = "ignoreOrder";
 
     /**
      * A list of keys that can have singular or array values.
      */
     private List<String> myCollapsibleArrays;
+
+    /**
+     * Whether the comparison ignores JSON value order.
+     */
+    private boolean myComparisonIgnoresOrder;
 
     /**
      * Whether the JSON should be formatted on output.
@@ -45,6 +50,25 @@ public class JsonOptions {
         myJsonIsFormatted = aOptions.isFormatted();
     }
 
+    @Override
+    public boolean equals(final Object aObject) {
+        final JsonOptions jsonOpts;
+
+        if (this == aObject) {
+            return true;
+        }
+
+        if (aObject == null || getClass() != aObject.getClass()) {
+            return false;
+        }
+
+        jsonOpts = (JsonOptions) aObject;
+
+        return myComparisonIgnoresOrder == jsonOpts.myComparisonIgnoresOrder &&
+                myJsonIsFormatted == jsonOpts.myJsonIsFormatted &&
+                Objects.equals(myCollapsibleArrays, jsonOpts.myCollapsibleArrays);
+    }
+
     /**
      * Sets whether or not to pretty print the JSON on serialization.
      *
@@ -57,62 +81,13 @@ public class JsonOptions {
     }
 
     /**
-     * Gets whether the JSON should be formatted on serialization.
-     *
-     * @return Whether the JSON should be formatted on serialization
-     */
-    public boolean isFormatted() {
-        return myJsonIsFormatted;
-    }
-
-    /**
-     * Gets whether there are any options set.
-     *
-     * @return True if not ignoring order and there are no collapsible arrays
-     */
-    public boolean isEmpty() {
-        return !ignoreOrder() && getCollapsibleArrays().isEmpty();
-    }
-
-    /**
-     * Sets the comparison to ignore or care about JSON value order.
-     *
-     * @param aOrderAgnosticComparison Whether comparisons should be made independent of order
-     * @return The options
-     */
-    public JsonOptions ignoreOrder(final boolean aOrderAgnosticComparison) {
-        myComparisonIgnoresOrder = aOrderAgnosticComparison;
-        return this;
-    }
-
-    /**
-     * Gets whether order should be ignored while comparing JSON values.
-     *
-     * @return True if order is ignored; else, false
-     */
-    public boolean ignoreOrder() {
-        return myComparisonIgnoresOrder;
-    }
-
-    /**
-     * Sets a list of arrays that can be collapsed when doing an equality test. The arrays are identified by their keys.
-     *
-     * @param aListOfKeys A list of keys of arrays that can be collapsed
-     * @return The options
-     */
-    public JsonOptions setCollapsibleArrays(final List<String> aListOfKeys) {
-        myCollapsibleArrays = aListOfKeys;
-        return this;
-    }
-
-    /**
      * Gets the list of array keys representing arrays that can be collapsed during an equality test.
      *
      * @return A list of keys of arrays that can be collapsed
      */
     public List<String> getCollapsibleArrays() {
         if (myCollapsibleArrays == null) {
-            myCollapsibleArrays = new ArrayList<>();
+            myCollapsibleArrays = new ArrayList<>(4);
         }
 
         return myCollapsibleArrays;
@@ -127,6 +102,31 @@ public class JsonOptions {
         return !getCollapsibleArrays().isEmpty();
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(myCollapsibleArrays, myComparisonIgnoresOrder, myJsonIsFormatted);
+    }
+
+    /**
+     * Gets whether order should be ignored while comparing JSON values.
+     *
+     * @return True if order is ignored; else, false
+     */
+    public boolean ignoreOrder() {
+        return myComparisonIgnoresOrder;
+    }
+
+    /**
+     * Sets the comparison to ignore or care about JSON value order.
+     *
+     * @param aOrderAgnosticComparison Whether comparisons should be made independent of order
+     * @return The options
+     */
+    public JsonOptions ignoreOrder(final boolean aOrderAgnosticComparison) {
+        myComparisonIgnoresOrder = aOrderAgnosticComparison;
+        return this;
+    }
+
     /**
      * Returns whether the supplied property name corresponds to a collapsible array.
      *
@@ -137,13 +137,42 @@ public class JsonOptions {
         return getCollapsibleArrays().contains(aPropertyName);
     }
 
+    /**
+     * Gets whether there are any options set.
+     *
+     * @return True if not ignoring order and there are no collapsible arrays
+     */
+    public boolean isEmpty() {
+        return !ignoreOrder() && getCollapsibleArrays().isEmpty();
+    }
+
+    /**
+     * Gets whether the JSON should be formatted on serialization.
+     *
+     * @return Whether the JSON should be formatted on serialization
+     */
+    public boolean isFormatted() {
+        return myJsonIsFormatted;
+    }
+
+    /**
+     * Sets a list of arrays that can be collapsed when doing an equality test. The arrays are identified by their keys.
+     *
+     * @param aListOfKeys A list of keys of arrays that can be collapsed
+     * @return The options
+     */
+    public JsonOptions setCollapsibleArrays(final List<String> aListOfKeys) {
+        myCollapsibleArrays = aListOfKeys;
+        return this;
+    }
+
     @Override
     public String toString() {
-        final JsonObject json = new JsonObject().add("ignoreOrder", myComparisonIgnoresOrder);
+        final JsonObject json = new JsonObject().add(IGNORE_ORDER, myComparisonIgnoresOrder);
         final List<String> collapsibleArrays = getCollapsibleArrays();
 
         if (!collapsibleArrays.isEmpty()) {
-            json.add("collapsibleArrays", collapsibleArrays.toString());
+            json.add(COLLAPSIBLE_ARRAYS, collapsibleArrays.toString());
         }
 
         return json.toString();

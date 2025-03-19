@@ -1,3 +1,4 @@
+// License info: https://github.com/ksclarke/magicfree-json#licenses
 
 package info.freelibrary.json;
 
@@ -57,22 +58,53 @@ public class PrettyWriter extends JsonWriter {
     }
 
     @Override
+    public boolean equals(final Object aObject) {
+        final PrettyWriter writer;
+
+        if (this == aObject) {
+            return true;
+        }
+
+        if (aObject == null || getClass() != aObject.getClass()) {
+            return false;
+        }
+
+        writer = (PrettyWriter) aObject;
+        return myIndentCount == writer.myIndentCount && Arrays.equals(myIndentChars, writer.myIndentChars);
+    }
+
+    @Override
+    public int hashCode() {
+        return 31 * Objects.hash(myIndentCount) + Arrays.hashCode(myIndentChars);
+    }
+
+    @Override
     public String toString() {
         return super.toString();
     }
 
     @Override
-    protected void writeArrayOpen() throws IOException {
-        myIndentCount += 1;
-        myWriter.write('[');
-        writeNewLine();
+    protected void writeArrayClose(final int aSize) throws IOException {
+        if (aSize > 1) {
+            myIndentCount -= 1;
+            writeNewLine();
+        } else {
+            myWriter.write(' ');
+        }
+
+        myWriter.write(']');
     }
 
     @Override
-    protected void writeArrayClose() throws IOException {
-        myIndentCount -= 1;
-        writeNewLine();
-        myWriter.write(']');
+    protected void writeArrayOpen(final int aSize) throws IOException {
+        myWriter.write('[');
+
+        if (aSize > 1) {
+            myIndentCount += 1;
+            writeNewLine();
+        } else {
+            myWriter.write(' ');
+        }
     }
 
     @Override
@@ -85,10 +117,10 @@ public class PrettyWriter extends JsonWriter {
     }
 
     @Override
-    protected void writeObjectOpen() throws IOException {
-        myIndentCount += 1;
-        myWriter.write('{');
-        writeNewLine();
+    protected void writeMemberSeparator() throws IOException {
+        myWriter.write(' ');
+        myWriter.write(':');
+        myWriter.write(' ');
     }
 
     @Override
@@ -99,9 +131,10 @@ public class PrettyWriter extends JsonWriter {
     }
 
     @Override
-    protected void writeMemberSeparator() throws IOException {
-        myWriter.write(':');
-        myWriter.write(' ');
+    protected void writeObjectOpen() throws IOException {
+        myIndentCount += 1;
+        myWriter.write('{');
+        writeNewLine();
     }
 
     @Override

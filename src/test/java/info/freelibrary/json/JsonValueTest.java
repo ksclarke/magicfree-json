@@ -18,42 +18,27 @@ public class JsonValueTest extends AbstractTestBase {
     private String myOutput;
 
     @Test
-    @SuppressWarnings("serial")
-    public void equalsNotImplementedTest() {
-        Assertions.assertThrows(UnsupportedOperationException.class, () -> {
-            new JsonValue() {
-
-                @Override
-                void write(final JsonWriter aWriter) throws IOException {
-                    // This is intentionally left empty
-                }
-            }.equals(null);
-        });
-    }
-
-    @Test
-    public void writeTo() throws IOException {
-        final JsonWriter writer = new JsonWriter(new StringWriter());
-        new JsonObject().writeTo(writer);
-        assertEquals("{}", writer.toString());
-    }
-
-    @Test
-    public void asObject_failsOnIncompatibleType() {
-        myOutput = assertThrows(UnsupportedOperationException.class, () -> Json.NULL.asObject()).getMessage();
-        assertTrue(myOutput.contains(getI18n(MessageCodes.JSON_011)));
-    }
-
-    @Test
     public void asArray_failsOnIncompatibleType() {
         myOutput = assertThrows(UnsupportedOperationException.class, () -> Json.NULL.asArray()).getMessage();
         assertTrue(myOutput.contains(getI18n(MessageCodes.JSON_012)));
     }
 
     @Test
-    public void asString_failsOnIncompatibleType() {
-        myOutput = assertThrows(UnsupportedOperationException.class, () -> Json.NULL.asString()).getMessage();
-        assertTrue(myOutput.contains(getI18n(MessageCodes.JSON_013)));
+    public void asBoolean_failsOnIncompatibleType() {
+        myOutput = assertThrows(UnsupportedOperationException.class, () -> Json.NULL.asBoolean()).getMessage();
+        assertTrue(myOutput.contains(getI18n(MessageCodes.JSON_015)));
+    }
+
+    @Test
+    public void asDouble_failsOnIncompatibleType() {
+        myOutput = assertThrows(UnsupportedOperationException.class, () -> Json.NULL.asDouble()).getMessage();
+        assertTrue(myOutput.contains(getI18n(MessageCodes.JSON_014)));
+    }
+
+    @Test
+    public void asFloat_failsOnIncompatibleType() {
+        myOutput = assertThrows(UnsupportedOperationException.class, () -> Json.NULL.asFloat()).getMessage();
+        assertTrue(myOutput.contains(getI18n(MessageCodes.JSON_014)));
     }
 
     @Test
@@ -69,21 +54,29 @@ public class JsonValueTest extends AbstractTestBase {
     }
 
     @Test
-    public void asFloat_failsOnIncompatibleType() {
-        myOutput = assertThrows(UnsupportedOperationException.class, () -> Json.NULL.asFloat()).getMessage();
-        assertTrue(myOutput.contains(getI18n(MessageCodes.JSON_014)));
+    public void asObject_failsOnIncompatibleType() {
+        myOutput = assertThrows(UnsupportedOperationException.class, () -> Json.NULL.asObject()).getMessage();
+        assertTrue(myOutput.equals(getI18n(MessageCodes.JSON_011)));
     }
 
     @Test
-    public void asDouble_failsOnIncompatibleType() {
-        myOutput = assertThrows(UnsupportedOperationException.class, () -> Json.NULL.asDouble()).getMessage();
-        assertTrue(myOutput.contains(getI18n(MessageCodes.JSON_014)));
+    public void asString_failsOnIncompatibleType() {
+        myOutput = assertThrows(UnsupportedOperationException.class, () -> Json.NULL.asString()).getMessage();
+        assertTrue(myOutput.contains(getI18n(MessageCodes.JSON_013)));
     }
 
     @Test
-    public void asBoolean_failsOnIncompatibleType() {
-        myOutput = assertThrows(UnsupportedOperationException.class, () -> Json.NULL.asBoolean()).getMessage();
-        assertTrue(myOutput.contains(getI18n(MessageCodes.JSON_015)));
+    @SuppressWarnings("serial")
+    public void equalsNotImplementedTest() {
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> {
+            new JsonValue() {
+
+                @Override
+                void write(final JsonWriter aWriter) throws IOException {
+                    // This is intentionally left empty
+                }
+            }.equals(null);
+        });
     }
 
     @Test
@@ -108,6 +101,13 @@ public class JsonValueTest extends AbstractTestBase {
         assertFalse(jsonValue.isNull());
         assertFalse(jsonValue.isTrue());
         assertFalse(jsonValue.isFalse());
+    }
+
+    @Test
+    public void writeTo() throws IOException {
+        final JsonWriter writer = new JsonWriter(new StringWriter());
+        new JsonObject().writeTo(writer);
+        assertEquals("{}", writer.toString());
     }
 
 }

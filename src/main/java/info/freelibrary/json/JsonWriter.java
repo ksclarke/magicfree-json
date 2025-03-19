@@ -1,28 +1,36 @@
+// License info: https://github.com/ksclarke/magicfree-json#licenses
 
 package info.freelibrary.json;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Objects;
+
+import info.freelibrary.util.I18nRuntimeException;
 
 /**
  * A bare-bones JSON writer which can be extended to include additional formatting niceties.
  */
 public class JsonWriter {
 
+    /** A constant for a backspace character. */
+    private static final char[] BS_CHARS = { '\\', '\\' };
+
     /** A constant for the end of control characters. */
     private static final int CONTROL_CHARACTERS_END = 0x001f;
 
-    /** A constant for a quote character. */
-    private static final char[] QUOT_CHARS = { '\\', '"' };
+    /** A constant for a carriage return character. */
+    private static final char[] CR_CHARS = { '\\', 'r' };
 
-    /** A constant for a backspace character. */
-    private static final char[] BS_CHARS = { '\\', '\\' };
+    /** An array of hex digits. */
+    private static final char[] HEX_DIGITS =
+            { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 
     /** A constant for a line feed character. */
     private static final char[] LF_CHARS = { '\\', 'n' };
 
-    /** A constant for a carriage return character. */
-    private static final char[] CR_CHARS = { '\\', 'r' };
+    /** A constant for a quote character. */
+    private static final char[] QUOT_CHARS = { '\\', '"' };
 
     /** A constant for a tab character. */
     private static final char[] TAB_CHARS = { '\\', 't' };
@@ -39,10 +47,6 @@ public class JsonWriter {
      */
     private static final char[] UNICODE_2029_CHARS = { '\\', 'u', '2', '0', '2', '9' };
 
-    /** An array of hex digits. */
-    private static final char[] HEX_DIGITS =
-            { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
-
     /** Encapsulated writer. */
     protected final Writer myWriter;
 
@@ -55,6 +59,19 @@ public class JsonWriter {
         myWriter = new WritingBuffer(aWriter, 128);
     }
 
+    @Override
+    public boolean equals(final Object aObject) {
+        if (this == aObject) {
+            return true;
+        }
+
+        if (aObject == null || getClass() != aObject.getClass()) {
+            return false;
+        }
+
+        return Objects.equals(myWriter, ((JsonWriter) aObject).myWriter);
+    }
+
     /**
      * Flushes the writer's buffer.
      *
@@ -64,51 +81,31 @@ public class JsonWriter {
         myWriter.flush();
     }
 
-    protected void writeLiteral(final String aLiteralValue) throws IOException {
-        myWriter.write(aLiteralValue);
+    @Override
+    public int hashCode() {
+        return Objects.hash(myWriter);
     }
 
-    protected void writeNumber(final String aNumString) throws IOException {
-        myWriter.write(aNumString);
+    @Override
+    public String toString() {
+        try {
+            myWriter.flush();
+        } catch (final IOException details) {
+            throw new I18nRuntimeException(details);
+        }
+
+        return myWriter.toString();
     }
 
-    protected void writeString(final String aString) throws IOException {
-        myWriter.write('"');
-        writeJsonString(aString);
-        myWriter.write('"');
-    }
-
-    protected void writeArrayOpen() throws IOException {
-        myWriter.write('[');
-    }
-
-    protected void writeArrayClose() throws IOException {
+    protected void writeArrayClose(final int aSize) throws IOException {
         myWriter.write(']');
     }
 
+    protected void writeArrayOpen(final int aSize) throws IOException {
+        myWriter.write('[');
+    }
+
     protected void writeArraySeparator() throws IOException {
-        myWriter.write(',');
-    }
-
-    protected void writeObjectOpen() throws IOException {
-        myWriter.write('{');
-    }
-
-    protected void writeObjectClose() throws IOException {
-        myWriter.write('}');
-    }
-
-    protected void writeMemberName(final String aName) throws IOException {
-        myWriter.write('"');
-        writeJsonString(aName);
-        myWriter.write('"');
-    }
-
-    protected void writeMemberSeparator() throws IOException {
-        myWriter.write(':');
-    }
-
-    protected void writeObjectSeparator() throws IOException {
         myWriter.write(',');
     }
 
@@ -128,6 +125,42 @@ public class JsonWriter {
         }
 
         myWriter.write(aJsonString, start, length - start);
+    }
+
+    protected void writeLiteral(final String aLiteralValue) throws IOException {
+        myWriter.write(aLiteralValue);
+    }
+
+    protected void writeMemberName(final String aName) throws IOException {
+        myWriter.write('"');
+        writeJsonString(aName);
+        myWriter.write('"');
+    }
+
+    protected void writeMemberSeparator() throws IOException {
+        myWriter.write(':');
+    }
+
+    protected void writeNumber(final String aNumString) throws IOException {
+        myWriter.write(aNumString);
+    }
+
+    protected void writeObjectClose() throws IOException {
+        myWriter.write('}');
+    }
+
+    protected void writeObjectOpen() throws IOException {
+        myWriter.write('{');
+    }
+
+    protected void writeObjectSeparator() throws IOException {
+        myWriter.write(',');
+    }
+
+    protected void writeString(final String aString) throws IOException {
+        myWriter.write('"');
+        writeJsonString(aString);
+        myWriter.write('"');
     }
 
     /**
@@ -175,16 +208,5 @@ public class JsonWriter {
         }
 
         return new char[] { '\\', 'u', '0', '0', HEX_DIGITS[aChar >> 4 & 0x000f], HEX_DIGITS[aChar & 0x000f] };
-    }
-
-    @Override
-    public String toString() {
-        try {
-            myWriter.flush();
-        } catch (final IOException details) {
-            throw new RuntimeException(details); // FIXME
-        }
-
-        return myWriter.toString();
     }
 }

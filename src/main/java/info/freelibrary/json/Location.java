@@ -1,53 +1,29 @@
-/*******************************************************************************
- * Copyright (c) 2016 EclipseSource.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- ******************************************************************************/
+// License info: https://github.com/ksclarke/magicfree-json#licenses
 
 package info.freelibrary.json;
 
-import info.freelibrary.util.StringUtils;
+import info.freelibrary.util.Logger;
+import info.freelibrary.util.LoggerFactory;
 
 /**
  * An immutable object that represents a location in the parsed text.
  */
 public class Location {
 
-    /**
-     * The absolute character index, starting at 0.
-     */
-    private final int myOffset;
+    /** The logger for the {@code Location} class. */
+    private static final Logger LOGGER = LoggerFactory.getLogger(Location.class, MessageCodes.BUNDLE);
 
-    /**
-     * The line number, starting at 1.
-     */
-    private final int myLine;
-
-    /**
-     * The column number, starting at 1.
-     */
+    /** The column number, starting at 1. */
     private final int myColumn;
 
-    /**
-     * The nesting level of the parsed text.
-     */
+    /** The line number, starting at 1. */
+    private final int myLine;
+
+    /** The nesting level of the parsed text. */
     private final int myNestingLevel;
+
+    /** The absolute character index, starting at 0. */
+    private final int myOffset;
 
     /**
      * Creates a new parsing location.
@@ -64,22 +40,18 @@ public class Location {
         myLine = aLine;
     }
 
-    /**
-     * Gets the offset of this location.
-     *
-     * @return A parsing offset
-     */
-    public int getOffset() {
-        return myOffset;
-    }
+    @Override
+    public boolean equals(final Object aObject) {
+        if (this == aObject) {
+            return true;
+        }
 
-    /**
-     * Gets the line of this parsing location.
-     *
-     * @return A parsing line
-     */
-    public int getLine() {
-        return myLine;
+        if (aObject == null || getClass() != aObject.getClass()) {
+            return false;
+        }
+
+        final Location location = (Location) aObject;
+        return myOffset == location.myOffset && myColumn == location.myColumn && myLine == location.myLine;
     }
 
     /**
@@ -92,6 +64,15 @@ public class Location {
     }
 
     /**
+     * Gets the line of this parsing location.
+     *
+     * @return A parsing line
+     */
+    public int getLine() {
+        return myLine;
+    }
+
+    /**
      * Gets the nesting level of the parsing location.
      *
      * @return A parsing level
@@ -100,9 +81,13 @@ public class Location {
         return myNestingLevel;
     }
 
-    @Override
-    public String toString() {
-        return StringUtils.format("line {}, column {}", myLine, myColumn);
+    /**
+     * Gets the offset of this location.
+     *
+     * @return A parsing offset
+     */
+    public int getOffset() {
+        return myOffset;
     }
 
     @Override
@@ -111,17 +96,8 @@ public class Location {
     }
 
     @Override
-    public boolean equals(final Object aObject) {
-        if (this == aObject) {
-            return true;
-        }
-
-        if ((aObject == null) || (getClass() != aObject.getClass())) {
-            return false;
-        }
-
-        final Location location = (Location) aObject;
-        return myOffset == location.myOffset && myColumn == location.myColumn && myLine == location.myLine;
+    public String toString() {
+        return LOGGER.getMessage(MessageCodes.JSON_050, myLine, myColumn);
     }
 
 }

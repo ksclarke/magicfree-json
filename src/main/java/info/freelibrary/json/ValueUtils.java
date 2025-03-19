@@ -1,11 +1,10 @@
+// License info: https://github.com/ksclarke/magicfree-json#licenses
 
 package info.freelibrary.json;
 
 import java.util.Iterator;
 import java.util.ListIterator;
-
-import info.freelibrary.util.Logger;
-import info.freelibrary.util.LoggerFactory;
+import java.util.Objects;
 
 import info.freelibrary.json.JsonObject.Property;
 
@@ -13,9 +12,6 @@ import info.freelibrary.json.JsonObject.Property;
  * A utility for making assertions about JsonValue(s).
  */
 class ValueUtils {
-
-    /** A utilities logger. */
-    private static final Logger LOGGER = LoggerFactory.getLogger(ValueUtils.class, MessageCodes.BUNDLE);
 
     /**
      * Creates a new assertions utility.
@@ -45,18 +41,15 @@ class ValueUtils {
         }
 
         if (a1stValue.isArray() && a2ndValue.isArray()) {
-            LOGGER.debug("Comparing two JSON arrays for equality");
             return equals(a1stValue.asArray(), a2ndValue.asArray(), aConfig);
         }
 
         if (a1stValue.isObject() && a2ndValue.isObject()) {
-            LOGGER.debug("Comparing two JSON objects for equality");
             return equals(a1stValue.asObject(), a2ndValue.asObject(), aConfig);
         }
 
         // If non-object, non-array JSON values, we can do a standard comparison
-        LOGGER.debug("Comparing two non-array/non-object simple JSON values");
-        return a1stValue.equals(a2ndValue);
+        return Objects.equals(a1stValue, a2ndValue);
     }
 
     /**
@@ -82,8 +75,7 @@ class ValueUtils {
         secondIterator = a2ndArray.iterator();
 
         if (orderIgnored) {
-            LOGGER.debug("Doing order insensitive comparison");
-
+            // Doing order insensitive comparison
             while (firstIterator.hasNext()) {
                 final JsonValue firstValue = firstIterator.next();
 
@@ -93,23 +85,17 @@ class ValueUtils {
                     final JsonValue secondValue = secondIterator.next();
 
                     if (firstValue.isObject() && secondValue.isObject()) {
-                        LOGGER.debug("  Checking equality on JsonObject property");
-
+                        // Checking equality on JsonObject properties
                         if (equals(firstValue.asObject(), secondValue.asObject(), aConfig)) {
                             match = true;
                         }
                     } else if (firstValue.isArray() && secondValue.isArray()) {
-                        LOGGER.debug("  Checking equality on JsonArray property");
-
+                        // Checking equality on JsonArray properties
                         if (equals(firstValue.asArray(), secondValue.asArray(), aConfig)) {
                             match = true;
                         }
-                    } else {
-                        LOGGER.debug("  Checking equality on JsonValue");
-
-                        if (firstValue.equals(secondValue)) {
-                            match = true;
-                        }
+                    } else if (firstValue.equals(secondValue)) {
+                        match = true;
                     }
                 }
 
@@ -123,8 +109,7 @@ class ValueUtils {
                 }
             }
         } else {
-            LOGGER.debug("Doing order sensitive comparison");
-
+            // Doing order sensitive comparison
             while (firstIterator.hasNext()) {
                 final JsonValue firstValue = firstIterator.next();
                 final JsonValue secondValue = secondIterator.next();
@@ -143,10 +128,18 @@ class ValueUtils {
             }
         }
 
-        LOGGER.debug("Returning JsonArray equality check: returning true");
         return true;
     }
 
+    /**
+     * Considers whether two {@code JsonObject}(s) are equal, considering the supplied JsonOptions (which can change how
+     * equality is evaluated).
+     *
+     * @param a1stObj A first JsonObject
+     * @param a2ndObj A second JsonObject
+     * @param aConfig A JSON comparison configuration
+     * @return Whether the two supplied {@code JsonObject}(s) are equal
+     */
     private static final boolean equals(final JsonObject a1stObj, final JsonObject a2ndObj, final JsonOptions aConfig) {
         final Iterator<Property> secondIterator;
         final Iterator<Property> firstIterator;
@@ -159,11 +152,11 @@ class ValueUtils {
         orderIgnored = aConfig == null ? false : aConfig.ignoreOrder();
 
         if (orderIgnored) {
-            LOGGER.debug("Doing order insensitive JsonObject comparison");
+            // Doing order insensitive JsonObject comparison
             secondIterator = a2ndObj.sortedIterator();
             firstIterator = a1stObj.sortedIterator();
         } else {
-            LOGGER.debug("Doing order sensitive JsonObject comparison");
+            // Doing order sensitive JsonObject comparison
             secondIterator = a2ndObj.iterator();
             firstIterator = a1stObj.iterator();
         }
@@ -177,22 +170,18 @@ class ValueUtils {
             JsonValue secondValue = secondProperty.getValue();
             JsonValue firstValue = firstProperty.getValue();
 
-            LOGGER.debug("Checking next JsonObject property: {}", firstName);
-
             if (!firstName.equals(secondName)) {
-                LOGGER.debug("  Next JsonObject property name didn't match: returning false");
+                // Next JsonObject property name didn't match: returning false
                 return false;
             }
 
             if (firstValue.isObject() && secondValue.isObject()) {
-                LOGGER.debug("  Checking equality on JsonObject property");
-
+                // Checking equality on JsonObject property
                 if (!firstValue.asObject().equals(secondValue.asObject(), aConfig)) {
                     return false;
                 }
             } else if (firstValue.isArray() && secondValue.isArray()) {
-                LOGGER.debug("  Checking equality on JsonArray property");
-
+                // Checking equality on JsonArray property
                 if (!firstValue.asArray().equals(secondValue.asArray(), aConfig)) {
                     return false;
                 }
@@ -200,8 +189,7 @@ class ValueUtils {
                 if (aConfig.isCollapsible(firstName) && (firstValue.isArray() || secondValue.isArray())) {
                     final JsonArray array = firstValue.isArray() ? firstValue.asArray() : secondValue.asArray();
 
-                    LOGGER.debug("  Checking equality on a collapsible JsonArray property");
-
+                    // Checking equality on a collapsible JsonArray property
                     if (array == firstValue) {
                         firstValue = array.get(0);
                     } else {
@@ -209,14 +197,10 @@ class ValueUtils {
                     }
                 }
 
-                LOGGER.debug("  Checking equality on JsonValue");
-
+                // Checking equality on JsonValue
                 if (!firstValue.equals(secondValue, aConfig)) {
-                    LOGGER.debug(" JsonValue not equal");
                     return false;
                 }
-
-                LOGGER.debug("  JsonValue equal");
             }
         }
 

@@ -1,7 +1,9 @@
+// License info: https://github.com/ksclarke/magicfree-json#licenses
 
 package info.freelibrary.json;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import info.freelibrary.util.Logger;
@@ -9,43 +11,45 @@ import info.freelibrary.util.LoggerFactory;
 import info.freelibrary.util.warnings.JDK;
 
 /**
- * An abstract handler that provides additional methods that are not implemented in JsonHandler.
+ * An abstract handler that provides additional methods that are not implemented in {@code JsonHandler}.
  */
-public abstract class AbstractHandler<O extends Object, I extends List<?>> implements JsonHandler<O, I> {
+public abstract class AbstractHandler<O extends Object, L extends List<?>> implements JsonHandler<O, L> {
 
-    /**
-     * The abstract handler's logger.
-     */
+    /** The abstract handler's logger. */
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractHandler.class, MessageCodes.BUNDLE);
 
-    /**
-     * The parser used by the handler.
-     */
-    protected JsonParser myParser;
-
-    /**
-     * The nesting level at which the handler was initialized.
-     */
+    /** The nesting level at which the handler was initialized. */
     protected int myNestingLevel;
 
-    /**
-     * A JSON object result.
-     */
+    /** The parser used by the handler. */
+    protected JsonParser myParser;
+
+    /** A JSON array result. */
+    private L myList;
+
+    /** A JSON object result. */
     private O myObject;
 
-    /**
-     * A JSON array result.
-     */
-    private I myList;
-
     @Override
-    public void setJsonParser(final JsonParser aParser) {
-        if (myParser != null) {
-            throw new IllegalStateException(LOGGER.getMessage("parser is already set"));
+    public boolean equals(final Object aObject) {
+        final AbstractHandler<?, ?> handler;
+
+        if (this == aObject) {
+            return true;
         }
 
-        myParser = aParser;
-        myNestingLevel = myParser.getLocation().getNestingLevel();
+        if (aObject == null || getClass() != aObject.getClass()) {
+            return false;
+        }
+
+        handler = (AbstractHandler<?, ?>) aObject;
+        return myNestingLevel == handler.myNestingLevel && Objects.equals(myParser, handler.myParser) &&
+                Objects.equals(myObject, handler.myObject) && Objects.equals(myList, handler.myList);
+    }
+
+    @Override
+    public L getIterable() {
+        return myList;
     }
 
     @Override
@@ -54,18 +58,47 @@ public abstract class AbstractHandler<O extends Object, I extends List<?>> imple
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(myParser, myNestingLevel, myObject, myList);
+    }
+
+    @Override
+    public void setIterable(final L aList) {
+        myList = aList;
+    }
+
+    @Override
+    public void setJsonParser(final JsonParser aParser) {
+        if (myParser != null) {
+            throw new IllegalStateException(LOGGER.getMessage(MessageCodes.JSON_021));
+        }
+
+        myParser = aParser;
+        myNestingLevel = myParser.getLocation().getNestingLevel();
+    }
+
+    @Override
     public void setObject(final O aObject) {
         myObject = aObject;
     }
 
-    @Override
-    public I getIterable() {
-        return myList;
-    }
+    /**
+     * Casts the handler's list to a list of the supplied class type.
+     *
+     * @param <T> A type of list to output
+     * @param aClass A class to which to cast the list
+     * @return A list of the supplied type
+     * @throws ClassCastException If not all the list's contents are of the supplied type
+     */
+    @SuppressWarnings(JDK.UNCHECKED)
+    protected <T> List<T> castList(final Class<T> aClass) {
+        for (final Object object : myList) {
+            if (!aClass.isInstance(object)) {
+                throw new ClassCastException();
+            }
+        }
 
-    @Override
-    public void setIterable(final I aList) {
-        myList = aList;
+        return (List<T>) myList;
     }
 
     /**
@@ -88,25 +121,6 @@ public abstract class AbstractHandler<O extends Object, I extends List<?>> imple
      */
     protected <T> List<T> copyList(final Class<T> aClass) {
         return myList.stream().map(obj -> aClass.cast(obj)).collect(Collectors.toList());
-    }
-
-    /**
-     * Casts the handler's list to a list of the supplied class type.
-     *
-     * @param <T> A type of list to output
-     * @param aClass A class to which to cast the list
-     * @return A list of the supplied type
-     * @throws ClassCastException If not all the list's contents are of the supplied type
-     */
-    @SuppressWarnings(JDK.UNCHECKED)
-    protected <T> List<T> castList(final Class<T> aClass) {
-        for (final Object object : myList) {
-            if (!aClass.isInstance(object)) {
-                throw new ClassCastException();
-            }
-        }
-
-        return (List<T>) myList;
     }
 
     /**
