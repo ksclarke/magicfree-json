@@ -24,7 +24,7 @@ public class PrettyPrinterTest extends AbstractTestBase {
     public void testIndentWithSpaces_emptyArray() throws IOException {
         final PrettyWriter output = new PrettyWriter(new StringWriter());
         new JsonArray().writeTo(output);
-        assertEquals("[\n  \n]", output.toString());
+        assertEquals("[  ]", output.toString());
     }
 
     @Test
@@ -73,7 +73,7 @@ public class PrettyPrinterTest extends AbstractTestBase {
     public void testSingleLine_nestedArray() throws IOException {
         final PrettyWriter output = new PrettyWriter(new StringWriter(), new char[] {});
         new JsonArray().add(23).add(new JsonArray().add(42)).writeTo(output);
-        assertEquals("[23, [42]]", output.toString());
+        assertEquals("[23, [ 42 ]]", output.toString());
     }
 
     @Test
