@@ -33,7 +33,7 @@ public class PrettyWriter extends JsonWriter {
 
     /**
      * Creates a new pretty printer with indentation from the supplied character array. If an empty array is supplied,
-     * the pretty printer will still add space formatting to the output, but will not indent. The supplied indentation
+     * the pretty printer will still add space formatting to the output but will not indent. The supplied indentation
      * array cannot be null. To use the default settings, use <code>PrettyPrinter</code>'s single argument constructor.
      *
      * @param aWriter An underlying writer
@@ -85,26 +85,16 @@ public class PrettyWriter extends JsonWriter {
 
     @Override
     protected void writeArrayClose(final int aSize) throws IOException {
-        if (aSize > 1) {
-            myIndentCount -= 1;
-            writeNewLine();
-        } else {
-            myWriter.write(' ');
-        }
-
+        myIndentCount -= 1;
+        writeNewLine();
         myWriter.write(']');
     }
 
     @Override
     protected void writeArrayOpen(final int aSize) throws IOException {
         myWriter.write('[');
-
-        if (aSize > 1) {
-            myIndentCount += 1;
-            writeNewLine();
-        } else {
-            myWriter.write(' ');
-        }
+        myIndentCount += 1;
+        writeNewLine();
     }
 
     @Override
