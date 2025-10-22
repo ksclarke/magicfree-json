@@ -42,13 +42,13 @@
 
   <properties>
     <!-- Library dependency versions -->
-    <freelib.utils.version>5.0.10</freelib.utils.version>
+    <freelib.utils.version>5.3.1</freelib.utils.version>
 
     <!-- Plugin dependency versions -->
     <clean.plugin.version>3.3.2</clean.plugin.version>
 
     <!-- Test dependency versions -->
-    <junit.version>5.10.0</junit.version>
+    <junit.version>5.14.0</junit.version>
     <graal.version>0.10.1</graal.version>
     <system.lambda.version>1.2.1</system.lambda.version>
 
@@ -203,12 +203,12 @@
 
   <profiles>
     <profile>
-      <id>native-build</id>
-      <activation>
+      <id>native</id>
+      <!--<activation>
         <property>
           <name>env.GRAALVM_HOME</name>
         </property>
-      </activation>
+      </activation>-->
       <build>
         <plugins>
           <plugin>
@@ -243,7 +243,7 @@
   <parent>
     <artifactId>freelib-parent</artifactId>
     <groupId>info.freelibrary</groupId>
-    <version>12.0.3</version>
+    <version>13.0.0</version>
   </parent>
 
 </project>
